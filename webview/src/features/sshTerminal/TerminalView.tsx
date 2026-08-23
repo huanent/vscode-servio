@@ -63,27 +63,6 @@ export function TerminalView({ ref, onData, onResize, onReady, onCopy, onPaste }
 				onData(key === 'arrowleft' ? '\x01' : '\x05');
 				return false;
 			}
-			const copyShortcut = isMac ? event.metaKey && !event.ctrlKey && key === 'c' : (event.ctrlKey && event.shiftKey && key === 'c') || (event.ctrlKey && key === 'insert');
-			if (copyShortcut) {
-				event.preventDefault();
-				const selection = terminal.getSelection();
-				if (selection) onCopy(selection);
-				return false;
-			}
-			const pasteShortcut = isMac ? event.metaKey && !event.ctrlKey && key === 'v' : (event.ctrlKey && event.shiftKey && key === 'v') || (event.shiftKey && key === 'insert');
-			if (pasteShortcut) {
-				event.preventDefault();
-				onPaste();
-				return false;
-			}
-			if (isMac && event.metaKey && !event.ctrlKey && key === 'a') {
-				terminal.selectAll();
-				return false;
-			}
-			if (isMac && event.metaKey && !event.ctrlKey && key === 'k') {
-				terminal.clear();
-				return false;
-			}
 			return true;
 		});
 		const fit = new FitAddon();
