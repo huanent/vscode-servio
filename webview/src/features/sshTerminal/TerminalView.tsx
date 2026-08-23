@@ -65,12 +65,14 @@ export function TerminalView({ ref, onData, onResize, onReady, onCopy, onPaste }
 			}
 			const copyShortcut = isMac ? event.metaKey && !event.ctrlKey && key === 'c' : (event.ctrlKey && event.shiftKey && key === 'c') || (event.ctrlKey && key === 'insert');
 			if (copyShortcut) {
+				event.preventDefault();
 				const selection = terminal.getSelection();
 				if (selection) onCopy(selection);
 				return false;
 			}
 			const pasteShortcut = isMac ? event.metaKey && !event.ctrlKey && key === 'v' : (event.ctrlKey && event.shiftKey && key === 'v') || (event.shiftKey && key === 'insert');
 			if (pasteShortcut) {
+				event.preventDefault();
 				onPaste();
 				return false;
 			}
