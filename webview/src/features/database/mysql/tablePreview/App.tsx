@@ -1,8 +1,8 @@
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown, LoaderCircle, Pencil, Plus, RefreshCw, Trash2 } from '../../../../components/icons';
 import { useEffect, useState } from 'react';
 import { IconButton, PrimaryButton } from '../../../../components/button';
+import { Dialog } from '../../../../components/dialog';
 import { SelectInput, TextArea, TextInput } from '../../../../components/input';
-import { Dialog } from '../../components/Dialog';
 import { SqlPreview } from '../../components/SqlPreview';
 import type { MysqlColumnInfo, MysqlTableFilter } from '../types';
 import { useMysqlTablePreview } from './useMysqlTablePreview';

@@ -1,7 +1,7 @@
 import { Database, Download, LoaderCircle, Pencil, Plus, RefreshCw, Gist, Trash2, Upload } from '../../../../components/icons';
 import { IconButton, PrimaryButton, SecondaryButton } from '../../../../components/button';
+import { Dialog } from '../../../../components/dialog';
 import { SelectInput, TextInput } from '../../../../components/input';
-import { Dialog } from '../../components/Dialog';
 import { SqlPreview } from '../../components/SqlPreview';
 import type { MysqlColumnType, MysqlTableColumnDefinition, MysqlTableInfo } from '../types';
 import { useMysqlOverview } from './useMysqlOverview';
