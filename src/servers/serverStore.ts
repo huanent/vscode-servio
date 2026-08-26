@@ -2,10 +2,8 @@ import { watch, FSWatcher } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, resolve } from 'node:path';
 import * as vscode from 'vscode';
-import { ExportedServer, parseStoredServers, Server, usesPrivateKey } from './server';
+import { ExportedServer, parseServer, Server, usesPrivateKey } from './server';
 
-const serversStateKey = 'server-hub.servers';
-const serversFileName = 'servers.json';
 const serverStoragePathSetting = 'serverStoragePath';
 const serverFilePattern = /^\d{6}-.+\.json$/;
 
@@ -153,15 +151,6 @@ export class ServerStore {
 			}
 		});
 		await this.reloadServers();
-		if (this.servers.length === 0) {
-			this.servers = await this.readLegacyServers();
-		}
-		if (await this.migrateSecretCredentials()) {
-			await this.writeServers(this.servers);
-			await this.deleteSecretCredentials();
-		} else if (this.servers.length > 0 && !(await this.hasServerFiles())) {
-			await this.writeServers(this.servers);
-		}
 	}
 
 	private scheduleReload(): void {
@@ -227,56 +216,6 @@ export class ServerStore {
 			.map(({ name }) => vscode.workspace.fs.delete(vscode.Uri.joinPath(this.serversDirectoryUri, name))));
 		this.servers = servers;
 		this.changeEmitter.fire();
-	}
-
-	private async readLegacyServers(): Promise<Server[]> {
-		try {
-			const content = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.context.globalStorageUri, serversFileName));
-			return parseStoredServers(JSON.parse(Buffer.from(content).toString('utf8')));
-		} catch (error) {
-			if (!(error instanceof vscode.FileSystemError && error.code === 'FileNotFound')) {
-				throw error;
-			}
-			return parseStoredServers(this.context.globalState.get<unknown>(serversStateKey, []));
-		}
-	}
-
-	private async hasServerFiles(): Promise<boolean> {
-		const entries = await vscode.workspace.fs.readDirectory(this.serversDirectoryUri);
-		return entries.some(([name, type]) => type === vscode.FileType.File && serverFilePattern.test(name));
-	}
-
-	private async migrateSecretCredentials(): Promise<boolean> {
-		let changed = false;
-		await Promise.all(this.servers.map(async server => {
-			if (server.type === 'container' && (server.connectionType === 'local' || server.sshServerId)) {
-				return;
-			}
-			const current = this.credentials.get(server.id) ?? {};
-			const [password, privateKey, passphrase] = await Promise.all([
-				current.password ? undefined : this.context.secrets.get(passwordKey(server.id)),
-				current.privateKey ? undefined : this.context.secrets.get(privateKeyKey(server.id)),
-				current.passphrase ? undefined : this.context.secrets.get(passphraseKey(server.id)),
-			]);
-			if (!password && !privateKey && !passphrase) {
-				return;
-			}
-			this.saveCredentials(server, {
-				password: current.password || password,
-				privateKey: current.privateKey || privateKey,
-				passphrase: current.passphrase || passphrase,
-			}, true);
-			changed = true;
-		}));
-		return changed;
-	}
-
-	private async deleteSecretCredentials(): Promise<void> {
-		await Promise.all(this.servers.flatMap(server => [
-			this.context.secrets.delete(passwordKey(server.id)),
-			this.context.secrets.delete(privateKeyKey(server.id)),
-			this.context.secrets.delete(passphraseKey(server.id)),
-		]));
 	}
 
 	private saveCredentials(server: Server, credentials: ServerCredentials, replace: boolean): void {
@@ -351,11 +290,16 @@ interface StoredServer {
 }
 
 function parseStoredServer(value: unknown): StoredServer | undefined {
-	const server = parseStoredServers([value])[0];
-	if (!server || typeof value !== 'object' || value === null || Array.isArray(value)) {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
 		return undefined;
 	}
 	const record = value as Record<string, unknown>;
+	let server: Server;
+	try {
+		server = parseServer(record);
+	} catch {
+		return undefined;
+	}
 	return {
 		server,
 		credentials: {

@@ -300,6 +300,7 @@ async function resolveSshConnection(server: ContainerServer, serverStore: Server
 		type: 'ssh',
 		name: server.name,
 		group: server.group,
+		aiEnabled: server.aiEnabled,
 		host: server.host,
 		port: server.port,
 		username: server.username,

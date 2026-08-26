@@ -14,6 +14,7 @@ interface BaseServer {
 	type: ServerType;
 	name: string;
 	group: string;
+	aiEnabled: boolean;
 }
 
 export interface SshServer extends BaseServer {
@@ -102,6 +103,7 @@ export interface ServerFormValues {
 	connectionType: ConnectionType;
 	sshServerId: string;
 	commands: ServerCommand[];
+	aiEnabled: boolean;
 }
 
 export type ServerFormExtensionMessage =

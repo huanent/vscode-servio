@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import * as vscode from 'vscode';
-import { ExportedServer, parseServerExport, Server, ServerExportFile } from './server';
+import { ExportedServer, parseServerExport, Server } from './server';
 import { ServerStore } from './serverStore';
 
 export async function exportServers(serverStore: ServerStore): Promise<void> {
@@ -33,8 +33,7 @@ async function exportServerFile(servers: ExportedServer[], fileName: string): Pr
 		return;
 	}
 
-	const exportFile: ServerExportFile = {
-		version: 7,
+	const exportFile = {
 		servers,
 	};
 	try {

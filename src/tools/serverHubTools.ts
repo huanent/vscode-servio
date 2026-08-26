@@ -76,7 +76,7 @@ class SqlTool implements vscode.LanguageModelTool<ExecuteSqlInput> {
 	}
 
 	private findMysqlServer(serverId: string): MysqlServer | undefined {
-		return this.serverStore.getServers().find((server): server is MysqlServer => server.id === serverId && server.type === 'mysql');
+		return this.serverStore.getServers().find((server): server is MysqlServer => server.id === serverId && server.type === 'mysql' && server.aiEnabled);
 	}
 }
 
@@ -103,7 +103,7 @@ class ContainerTool implements vscode.LanguageModelTool<ExecuteContainerInput> {
 	}
 
 	private findContainerServer(serverId: string): ContainerServer | undefined {
-		return this.serverStore.getServers().find((server): server is ContainerServer => server.id === serverId && server.type === 'container');
+		return this.serverStore.getServers().find((server): server is ContainerServer => server.id === serverId && server.type === 'container' && server.aiEnabled);
 	}
 }
 
@@ -152,7 +152,7 @@ class SftpTool implements vscode.LanguageModelTool<SftpInput> {
 	}
 
 	private findSshServer(serverId: string): SshServer | undefined {
-		return this.serverStore.getServers().find((server): server is SshServer => server.id === serverId && server.type === 'ssh');
+		return this.serverStore.getServers().find((server): server is SshServer => server.id === serverId && server.type === 'ssh' && server.aiEnabled);
 	}
 }
 
@@ -164,7 +164,7 @@ class ListServersTool implements vscode.LanguageModelTool<ListServersInput> {
 		_token: vscode.CancellationToken,
 	): Promise<vscode.LanguageModelToolResult> {
 		const servers = this.serverStore.getServers()
-			.filter(server => this.matchesType(server, options.input.serverType))
+			.filter(server => server.aiEnabled && this.matchesType(server, options.input.serverType))
 			.map(server => this.toListedServer(server));
 
 		return textResult(JSON.stringify(servers, undefined, 2));
@@ -232,7 +232,7 @@ class ExecuteSshCommandTool implements vscode.LanguageModelTool<ExecuteSshComman
 
 	private findSshServer(serverId: string): SshServer | undefined {
 		return this.serverStore.getServers().find(
-			(server): server is SshServer => server.id === serverId && server.type === 'ssh',
+			(server): server is SshServer => server.id === serverId && server.type === 'ssh' && server.aiEnabled,
 		);
 	}
 }

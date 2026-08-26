@@ -3,7 +3,7 @@ import { vscode } from '../../../vscodeApi';
 import type { ServerFormExtensionMessage, ServerFormModel, ServerFormValues } from '../types';
 
 const emptyValues: ServerFormValues = {
-	name: '', group: '', host: '', port: '22', username: '', authType: 'password', proxyCommand: '',
+	name: '', group: '', aiEnabled: false, host: '', port: '22', username: '', authType: 'password', proxyCommand: '',
 	proxyMode: 'none',
 	proxyEnabled: false, proxyHost: '', proxyPort: '22', proxyUsername: '', proxyAuthType: 'password',
 	proxyPassword: '', proxyPrivateKey: '', proxyPassphrase: '',
@@ -34,6 +34,7 @@ export function useServerForm() {
 						...emptyValues,
 						name: server?.name ?? '',
 						group: server?.group ?? '',
+						aiEnabled: server?.aiEnabled ?? false,
 						host: server && 'host' in server ? server.host ?? '' : '',
 						port: String(server && 'port' in server ? server.port ?? 22 : nextModel.serverType === 'mysql' ? 3306 : 22),
 						username: server && 'username' in server ? server.username ?? '' : '',

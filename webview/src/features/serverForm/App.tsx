@@ -52,6 +52,10 @@ export function App() {
 					{selectedTab === 'connection' && <section aria-labelledby="connection-heading">
 						<h2 className="mt-0 mb-3.5 text-sm font-semibold" id="connection-heading">Connection details</h2>
 						<div className="grid gap-3.5">
+							<label className="flex items-center justify-between gap-3 border-b border-(--vscode-panel-border,var(--vscode-widget-border)) pb-3.5 text-sm">
+								<span>Enable AI features</span>
+								<input type="checkbox" checked={values.aiEnabled} onChange={event => form.update('aiEnabled', event.target.checked)} />
+							</label>
 							{model.serverType === 'container' ? <ContainerFields form={form} /> : <NetworkFields form={form} />}
 							{usesAuthentication && <AuthenticationFields form={form} />}
 						</div>

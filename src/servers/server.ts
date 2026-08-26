@@ -5,6 +5,7 @@ export interface BaseServer {
 	type: ServerType;
 	name: string;
 	group: string;
+	aiEnabled: boolean;
 }
 
 export interface NetworkServer extends BaseServer {
@@ -71,11 +72,6 @@ export type ExportedServer = Server & {
 	proxyPassphrase?: string;
 };
 
-export interface ServerExportFile {
-	version: 7;
-	servers: ExportedServer[];
-}
-
 export interface ServerFormMessage {
 	type: 'save' | 'selectPrivateKey' | 'selectProxyPrivateKey' | 'selectExecutable';
 	name?: unknown;
@@ -102,6 +98,7 @@ export interface ServerFormMessage {
 	connectionType?: unknown;
 	sshServerId?: unknown;
 	commands?: unknown;
+	aiEnabled?: unknown;
 }
 
 function parseSshProxy(message: ServerFormMessage): SshProxy | undefined {
@@ -143,6 +140,7 @@ export function parseServerForm(
 			type: 'container',
 			name,
 			group,
+			aiEnabled: message.aiEnabled === true,
 			runtime,
 			executablePath,
 		} as const;
@@ -178,6 +176,7 @@ export function parseServerForm(
 		id: serverId ?? crypto.randomUUID(),
 		name,
 		group,
+		aiEnabled: message.aiEnabled === true,
 		host,
 		port,
 		username,
@@ -208,22 +207,8 @@ export function parseServerForm(
 	};
 }
 
-export function parseStoredServers(value: unknown): Server[] {
-	if (!Array.isArray(value)) {
-		return [];
-	}
-
-	return value.flatMap(entry => {
-		try {
-			return [parseServer(entry, false)];
-		} catch {
-			return [];
-		}
-	});
-}
-
 export function parseServerExport(value: unknown): ExportedServer[] {
-	if (!isRecord(value) || (value.version !== 1 && value.version !== 2 && value.version !== 3 && value.version !== 4 && value.version !== 5 && value.version !== 6 && value.version !== 7) || !Array.isArray(value.servers)) {
+	if (!isRecord(value) || !Array.isArray(value.servers)) {
 		throw new Error('The file is not a supported ServerHub export.');
 	}
 
@@ -235,7 +220,7 @@ export function parseServerExport(value: unknown): ExportedServer[] {
 
 		let server: Server;
 		try {
-			server = parseServer(entry, value.version === 2);
+			server = parseServer(entry);
 		} catch {
 			throw new Error(`Server ${index + 1} has invalid or missing fields.`);
 		}
@@ -263,7 +248,7 @@ export function normalizePassword(value: unknown): string {
 	return typeof value === 'string' ? value : '';
 }
 
-function parseServer(value: unknown, requireType: boolean): Server {
+export function parseServer(value: unknown): Server {
 	if (!isRecord(value)) {
 		throw new Error('Invalid server.');
 	}
@@ -272,7 +257,7 @@ function parseServer(value: unknown, requireType: boolean): Server {
 		? 'mysql'
 		: value.type === 'container'
 			? 'container'
-			: value.type === 'ssh' || !requireType ? 'ssh' : undefined;
+			: value.type === 'ssh' ? 'ssh' : undefined;
 	const id = normalizeString(value.id);
 	if (!type || !id) {
 		throw new Error('Invalid server.');
@@ -300,6 +285,7 @@ function parseServer(value: unknown, requireType: boolean): Server {
 		connectionType: value.connectionType,
 		sshServerId: value.sshServerId,
 		commands: value.commands,
+		aiEnabled: value.aiEnabled === true,
 	}, type, id);
 	if (!server) {
 		throw new Error('Invalid server.');
