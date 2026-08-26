@@ -47,13 +47,13 @@
         "displayName": "List Servers",
         "canBeReferencedInPrompt": true,
         "userDescription": "List configured servers by type.",
-        "modelDescription": "List servers by type. Use serverType ssh, database, or container.",
+        "modelDescription": "List servers by type. Use serverType ssh, db, or container.",
         "inputSchema": {
           "type": "object",
           "properties": {
             "serverType": {
               "type": "string",
-              "enum": ["ssh", "database", "container"],
+              "enum": ["ssh", "db", "container"],
               "description": "Server type to list."
             }
           },
@@ -96,7 +96,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "serverId": { "type": "string", "description": "Database server id from serverhub_list_servers." },
+            "serverId": { "type": "string", "description": "DB server id from serverhub_list_servers." },
             "database": { "type": "string", "description": "Database name to use." },
             "sql": { "type": "string", "minLength": 1, "description": "SQL statement to run." }
           },

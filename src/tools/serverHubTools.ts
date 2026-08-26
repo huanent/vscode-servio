@@ -9,7 +9,7 @@ import { createSftpDirectory, deleteSftpEntry, downloadSftpFile, listSftpDirecto
 interface EmptyInput {}
 
 interface ListServersInput {
-	serverType: 'ssh' | 'database' | 'container';
+	serverType: 'ssh' | 'db' | 'container';
 }
 
 interface ExecuteSshCommandInput {
@@ -64,7 +64,7 @@ class SqlTool implements vscode.LanguageModelTool<ExecuteSqlInput> {
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<ExecuteSqlInput>, _token: vscode.CancellationToken): Promise<vscode.LanguageModelToolResult> {
 		const server = this.findMysqlServer(options.input.serverId);
-		if (!server) throw new Error('Database server was not found. Call serverhub_list_servers with serverType database first.');
+		if (!server) throw new Error('DB server was not found. Call serverhub_list_servers with serverType db first.');
 		const credentials = await this.serverStore.getCredentials(server.id);
 		const connection = await createMysqlConnection(server, credentials, options.input.database);
 		try {
@@ -171,14 +171,14 @@ class ListServersTool implements vscode.LanguageModelTool<ListServersInput> {
 	}
 
 	private matchesType(server: Server, serverType: ListServersInput['serverType']): boolean {
-		return serverType === 'database' ? server.type === 'mysql' : server.type === serverType;
+		return serverType === 'db' ? server.type === 'mysql' : server.type === serverType;
 	}
 
 	private toListedServer(server: Server): Record<string, unknown> {
 		const result: Record<string, unknown> = {
 			id: server.id,
 			name: server.name,
-			type: server.type === 'mysql' ? 'database' : server.type,
+			type: server.type === 'mysql' ? 'db' : server.type,
 			group: server.group,
 		};
 		if (server.type === 'ssh' || server.type === 'mysql') {
