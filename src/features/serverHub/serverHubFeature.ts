@@ -4,6 +4,7 @@ import { registerServerHubEditor } from '../../editors/serverHubEditor';
 import { MysqlSqlEditorController } from '../../mysql/mysqlSqlEditor';
 import { ServerStore } from '../../servers/serverStore';
 import { ServerTreeDataProvider } from '../../servers/serverTree';
+import { registerServerHubTools } from '../../tools/serverHubTools';
 
 export async function activateServerHubFeature(context: vscode.ExtensionContext): Promise<void> {
 	const serverStore = await ServerStore.create(context);
@@ -14,6 +15,7 @@ export async function activateServerHubFeature(context: vscode.ExtensionContext)
 		serverStore,
 		treeDataProvider,
 		mysqlSqlEditor,
+		registerServerHubTools(serverStore),
 		registerServerHubEditor(
 			context,
 			serverStore,

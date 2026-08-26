@@ -2,7 +2,7 @@
   "name": "server-hub",
   "displayName": "ServerHub",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "1.7.11",
+  "version": "1.7.12",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -10,6 +10,9 @@
   "publisher": "huanent",
   "icon": "resources/logo.png",
   "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "extensionKind": [
     "ui"
   ],
@@ -27,9 +30,55 @@
           "default": "",
           "scope": "application",
           "description": "Directory used to store server definitions as individual JSON files. Relative paths and paths starting with ~ are resolved from the user home directory. Restart ServerHub after changing this setting."
+        },
+        "server-hub.enableLanguageModelTools": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Expose SSH servers and SSH command execution to Copilot tools."
         }
       }
     },
+    "languageModelTools": [
+      {
+        "name": "serverhub_list_ssh_servers",
+        "when": "config.server-hub.enableLanguageModelTools",
+        "toolReferenceName": "serverhubListSshServers",
+        "displayName": "List SSH Servers",
+        "canBeReferencedInPrompt": true,
+        "userDescription": "List configured SSH servers without revealing credentials.",
+        "modelDescription": "List configured SSH servers. Use this before executing a command to obtain a serverId.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        },
+        "tags": ["ssh", "server", "read-only"]
+      },
+      {
+        "name": "serverhub_execute_ssh_command",
+        "when": "config.server-hub.enableLanguageModelTools",
+        "toolReferenceName": "serverhubExecuteSshCommand",
+        "displayName": "Execute SSH Command",
+        "canBeReferencedInPrompt": true,
+        "userDescription": "Execute a command on a configured SSH server after confirmation.",
+        "modelDescription": "Execute a command on one configured SSH server.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "serverId": {
+              "type": "string",
+              "description": "The id returned by serverhub_list_ssh_servers."
+            },
+            "command": {
+              "type": "string",
+              "description": "The shell command to execute remotely."
+            }
+          },
+          "required": ["serverId", "command"]
+        },
+        "tags": ["ssh", "server", "remote-command"]
+      }
+    ],
     "customEditors": [
       {
         "viewType": "server-hub.editor",
