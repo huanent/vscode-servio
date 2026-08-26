@@ -256,7 +256,7 @@ async function readServiceState(server: ContainerServer, serverStore: ServerStor
 	return 'running';
 }
 
-async function executeContainerCommand(server: ContainerServer, serverStore: ServerStore, args: string[]): Promise<string> {
+export async function executeContainerCommand(server: ContainerServer, serverStore: ServerStore, args: string[]): Promise<string> {
 	if (server.connectionType === 'ssh') {
 		const { sshServer, credentials } = await resolveSshConnection(server, serverStore);
 		const command = [server.executablePath, ...args].map(shellQuote).join(' ');

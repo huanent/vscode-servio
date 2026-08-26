@@ -2,7 +2,7 @@
   "name": "server-hub",
   "displayName": "ServerHub",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "1.7.12",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -35,48 +35,114 @@
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "Expose SSH servers and SSH command execution to Copilot tools."
+          "description": "Expose ServerHub operations to Copilot tools."
         }
       }
     },
     "languageModelTools": [
       {
-        "name": "serverhub_list_ssh_servers",
+        "name": "serverhub_list_servers",
         "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubListSshServers",
-        "displayName": "List SSH Servers",
+        "toolReferenceName": "serverhubListServers",
+        "displayName": "List Servers",
         "canBeReferencedInPrompt": true,
-        "userDescription": "List configured SSH servers without revealing credentials.",
-        "modelDescription": "List configured SSH servers. Use this before executing a command to obtain a serverId.",
+        "userDescription": "List configured servers by type.",
+        "modelDescription": "List servers by type. Use serverType ssh, database, or container.",
         "inputSchema": {
           "type": "object",
-          "properties": {}
+          "properties": {
+            "serverType": {
+              "type": "string",
+              "enum": ["ssh", "database", "container"],
+              "description": "Server type to list."
+            }
+          },
+          "required": ["serverType"]
         },
-        "tags": ["ssh", "server", "read-only"]
+        "tags": ["server", "list"]
       },
       {
-        "name": "serverhub_execute_ssh_command",
+        "name": "serverhub_ssh",
         "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubExecuteSshCommand",
-        "displayName": "Execute SSH Command",
+        "toolReferenceName": "serverhubSsh",
+        "displayName": "Run SSH Command",
         "canBeReferencedInPrompt": true,
-        "userDescription": "Execute a command on a configured SSH server after confirmation.",
-        "modelDescription": "Execute a command on one configured SSH server.",
+        "userDescription": "Run a command on a configured SSH server.",
+        "modelDescription": "Run a shell command on an SSH server. Get serverId from serverhub_list_servers with serverType ssh.",
         "inputSchema": {
           "type": "object",
           "properties": {
             "serverId": {
               "type": "string",
-              "description": "The id returned by serverhub_list_ssh_servers."
+              "description": "SSH server id from serverhub_list_servers."
             },
             "command": {
               "type": "string",
-              "description": "The shell command to execute remotely."
+              "description": "Shell command to run remotely."
             }
           },
           "required": ["serverId", "command"]
         },
-        "tags": ["ssh", "server", "remote-command"]
+        "tags": ["ssh", "command"]
+      },
+      {
+        "name": "serverhub_sql",
+        "when": "config.server-hub.enableLanguageModelTools",
+        "toolReferenceName": "serverhubSql",
+        "displayName": "Run SQL",
+        "canBeReferencedInPrompt": true,
+        "userDescription": "Run SQL on a configured database server.",
+        "modelDescription": "Run one SQL statement on a database server. Get serverId from serverhub_list_servers with serverType database.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "serverId": { "type": "string", "description": "Database server id from serverhub_list_servers." },
+            "database": { "type": "string", "description": "Database name to use." },
+            "sql": { "type": "string", "minLength": 1, "description": "SQL statement to run." }
+          },
+          "required": ["serverId", "sql"]
+        },
+        "tags": ["database", "sql", "query"]
+      },
+      {
+        "name": "serverhub_container",
+        "when": "config.server-hub.enableLanguageModelTools",
+        "toolReferenceName": "serverhubContainer",
+        "displayName": "Run Container Command",
+        "canBeReferencedInPrompt": true,
+        "userDescription": "Run a command on a configured container runtime.",
+        "modelDescription": "Run a Docker, Podman, or Apple Container command. Get serverId from serverhub_list_servers with serverType container.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "serverId": { "type": "string", "description": "Container server id from serverhub_list_servers." },
+            "args": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Runtime arguments, excluding the executable path." }
+          },
+          "required": ["serverId", "args"]
+        },
+        "tags": ["container", "runtime", "command"]
+      },
+      {
+        "name": "serverhub_sftp",
+        "when": "config.server-hub.enableLanguageModelTools",
+        "toolReferenceName": "serverhubSftp",
+        "displayName": "Run SFTP Operation",
+        "canBeReferencedInPrompt": true,
+        "userDescription": "Run an SFTP file operation on a configured SSH server.",
+        "modelDescription": "Run an SFTP operation on an SSH server. Get serverId from serverhub_list_servers with serverType ssh.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "serverId": { "type": "string", "description": "SSH server id from serverhub_list_servers." },
+            "action": { "type": "string", "enum": ["list", "read", "upload", "download", "delete", "mkdir", "rename"], "description": "SFTP operation to run." },
+            "remotePath": { "type": "string", "description": "Remote POSIX path." },
+            "localPath": { "type": "string", "description": "Local absolute path for upload or download." },
+            "toRemotePath": { "type": "string", "description": "Destination remote path for rename." },
+            "isDirectory": { "type": "boolean", "description": "Whether the target is a directory for delete." }
+          },
+          "required": ["serverId", "action", "remotePath"]
+        },
+        "tags": ["ssh", "sftp", "file"]
       }
     ],
     "customEditors": [
