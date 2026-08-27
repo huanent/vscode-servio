@@ -10,7 +10,7 @@ import { useServerForm } from './hooks/useServerForm';
 
 export function App() {
 	const form = useServerForm();
-	const [activeTab, setActiveTab] = useState<'connection' | 'proxy' | 'commands'>('connection');
+	const [activeTab, setActiveTab] = useState<'connection' | 'proxy' | 'commands' | 'other'>('connection');
 	if (!form.model) {
 		return <main className="grid min-h-screen place-items-center text-sm text-(--vscode-descriptionForeground)">Loading...</main>;
 	}
@@ -22,6 +22,7 @@ export function App() {
 		{ value: 'connection' as const, label: 'Connection' },
 		...(supportsProxy ? [{ value: 'proxy' as const, label: 'Proxy' }] : []),
 		...(model.serverType === 'ssh' ? [{ value: 'commands' as const, label: 'Commands' }] : []),
+		{ value: 'other' as const, label: 'Other' },
 	];
 	const selectedTab = tabs.some(tab => tab.value === activeTab) ? activeTab : 'connection';
 
@@ -52,16 +53,19 @@ export function App() {
 					{selectedTab === 'connection' && <section aria-labelledby="connection-heading">
 						<h2 className="mt-0 mb-3.5 text-sm font-semibold" id="connection-heading">Connection details</h2>
 						<div className="grid gap-3.5">
-							<label className="flex items-center justify-between gap-3 border-b border-(--vscode-panel-border,var(--vscode-widget-border)) pb-3.5 text-sm">
-								<span>Enable AI features</span>
-								<input type="checkbox" checked={values.aiEnabled} onChange={event => form.update('aiEnabled', event.target.checked)} />
-							</label>
 							{model.serverType === 'container' ? <ContainerFields form={form} /> : <NetworkFields form={form} />}
 							{usesAuthentication && <AuthenticationFields form={form} />}
 						</div>
 					</section>}
 					{selectedTab === 'proxy' && supportsProxy && <ProxyFields form={form} />}
 					{selectedTab === 'commands' && model.serverType === 'ssh' && <CommandFields form={form} />}
+					{selectedTab === 'other' && <section aria-labelledby="other-heading">
+						<h2 className="mt-0 mb-3.5 text-sm font-semibold" id="other-heading">Other settings</h2>
+						<label className="flex items-center justify-between gap-3 border-y border-(--vscode-panel-border,var(--vscode-widget-border)) py-3.5 text-sm">
+							<span>Enable AI features</span>
+							<input type="checkbox" checked={values.aiEnabled} onChange={event => form.update('aiEnabled', event.target.checked)} />
+						</label>
+					</section>}
 					{form.error && <div className="mt-4 border-l-[3px] border-(--vscode-errorForeground) bg-(--vscode-inputValidation-errorBackground) px-3 py-2.5 text-(--vscode-errorForeground)" role="alert">{form.error}</div>}
 				</div>
 			</main>

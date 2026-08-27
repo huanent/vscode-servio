@@ -91,5 +91,5 @@ export function TerminalView({ ref, onData, onResize, onReady, onCopy, onPaste }
 		requestAnimationFrame(() => { fit.fit(); terminal.focus(); onReady(); });
 		return () => { observer.disconnect(); themeObserver.disconnect(); elementRef.current?.removeEventListener('contextmenu', handleContextMenu); dataDisposable.dispose(); resizeDisposable.dispose(); terminal.dispose(); };
 	}, []);
-	return <div ref={elementRef} className="h-full w-full" aria-label="SSH terminal" />;
+	return <div ref={elementRef} className="h-full w-full px-1" aria-label="SSH terminal" />;
 }
