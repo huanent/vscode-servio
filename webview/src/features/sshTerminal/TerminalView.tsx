@@ -50,7 +50,7 @@ export function TerminalView({ ref, onData, onResize, onReady, onCopy, onPaste }
 	useEffect(() => {
 		const style = getComputedStyle(document.documentElement);
 		const themeValue = (name: string, fallback = '') => style.getPropertyValue(name).trim() || fallback;
-		const terminal = new Terminal({ cursorBlink: true, fontFamily: themeValue('--vscode-editor-font-family'), fontSize: Number(themeValue('--vscode-editor-font-size').replace('px', '')) || 14, scrollback: 5000, theme: readTerminalTheme() });
+		const terminal = new Terminal({ cursorBlink: true, cursorStyle: 'bar', fontFamily: themeValue('--vscode-editor-font-family'), fontSize: Number(themeValue('--vscode-editor-font-size').replace('px', '')) || 14, scrollback: 5000, theme: readTerminalTheme() });
 		const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 		terminal.attachCustomKeyEventHandler(event => {
 			if (event.type !== 'keydown') return true;

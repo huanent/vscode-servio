@@ -34,7 +34,7 @@ export function useSshTerminal(onOutput: (data: string) => void, onPaste: (data:
 				case 'terminalPaste': onPasteRef.current(message.data); break;
 				case 'metrics': setMetrics(message.metrics); break;
 				case 'metricsUnavailable': setMetrics(emptyMetrics); break;
-				case 'focusTerminal': onFocusRef.current(); break;
+				case 'focusTerminal': requestAnimationFrame(() => onFocusRef.current()); break;
 				case 'showSftp': setSftpVisible(true); requestAnimationFrame(() => onVisibilityChangeRef.current()); break;
 				case 'hideSftp': setSftpVisible(false); requestAnimationFrame(() => onVisibilityChangeRef.current()); break;
 				case 'sftpLoading': setSftpLoading(true); break;

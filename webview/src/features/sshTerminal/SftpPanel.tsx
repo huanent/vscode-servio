@@ -121,7 +121,7 @@ function FileRow({ entry, active, onSelect, onOpen, onContextMenu }: { entry: Sf
 
 function Menu({ items, className, style, onDismiss }: { items: { label: string; danger?: boolean; action: () => void }[]; className: string; style?: React.CSSProperties; onDismiss: () => void }) {
 	return <div className={`${popupClassName} z-30 min-w-44 ${className}`} style={style} tabIndex={-1} autoFocus role="menu" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onDismiss(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) onDismiss(); }}>
-		{items.map(item => <button key={item.label} className={`block min-h-7.5 w-full rounded-[3px] border-0 bg-transparent px-2.5 text-left text-xs outline-none hover:bg-(--vscode-menu-selectionBackground) hover:text-(--vscode-menu-selectionForeground) focus:bg-(--vscode-menu-selectionBackground) focus:text-(--vscode-menu-selectionForeground) ${item.danger ? 'text-(--vscode-errorForeground)' : ''}`} role="menuitem" onClick={event => { event.stopPropagation(); item.action(); onDismiss(); }}>{item.label}</button>)}
+		{items.map(item => <button key={item.label} className={`block min-h-7.5 w-full rounded-[3px] border-0 bg-transparent px-2.5 text-left text-xs outline-none hover:bg-(--vscode-menu-selectionBackground) hover:text-(--vscode-menu-selectionForeground) focus:bg-(--vscode-menu-selectionBackground) focus:text-(--vscode-menu-selectionForeground) ${item.danger ? 'text-(--vscode-errorForeground) hover:text-(--vscode-errorForeground)! focus:text-(--vscode-errorForeground)!' : ''}`} role="menuitem" onClick={event => { event.stopPropagation(); item.action(); onDismiss(); }}>{item.label}</button>)}
 	</div>;
 }
 

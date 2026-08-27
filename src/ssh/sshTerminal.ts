@@ -133,6 +133,9 @@ class SshWebviewSession {
 			this.webviewReady = true;
 			this.postMessage({ type: 'initialize', server: { name: this.server.name, address: `${this.server.username}@${this.server.host}:${this.server.port}` } });
 			this.postSftpFavorites();
+			if (this.panel.active) {
+				this.postMessage({ type: 'focusTerminal' });
+			}
 			if (this.sftpVisible) {
 				this.postMessage({ type: 'showSftp' });
 			}
