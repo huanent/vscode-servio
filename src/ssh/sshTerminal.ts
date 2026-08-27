@@ -11,7 +11,7 @@ import { getWebviewHtml } from '../webview';
 import { connectSshClient, SshConnection } from './sshConnection';
 
 interface SshWebviewMessage {
-	type: 'input' | 'resize' | 'ready' | 'terminalCopy' | 'terminalPaste' | 'sftpList' | 'sftpDelete' | 'sftpDownload' | 'sftpUpload' | 'sftpCopyPath' | 'sftpCreateDirectory' | 'sftpProperties' | 'sftpRename' | 'sftpEdit' | 'sftpToggleFavorite';
+	type: 'input' | 'resize' | 'ready' | 'terminalCopy' | 'terminalPaste' | 'sftpList' | 'sftpDelete' | 'sftpDownload' | 'sftpUpload' | 'sftpCopyPath' | 'sftpCreateDirectory' | 'sftpRename' | 'sftpEdit' | 'sftpToggleFavorite';
 	data?: unknown;
 	rows?: unknown;
 	columns?: unknown;
@@ -181,10 +181,6 @@ class SshWebviewSession {
 		}
 		if (message.type === 'sftpCopyPath' && typeof message.path === 'string') {
 			void vscode.env.clipboard.writeText(message.path);
-			return;
-		}
-		if (message.type === 'sftpProperties' && typeof message.path === 'string') {
-			void this.showSftpProperties(message.path);
 			return;
 		}
 		if (message.type === 'sftpRename' && typeof message.path === 'string') {
@@ -629,39 +625,6 @@ class SshWebviewSession {
 			await this.loadSftpDirectory(remoteDirectory);
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Could not create folder: ${this.errorMessage(error)}`);
-		}
-	}
-
-	private async showSftpProperties(remotePath: string): Promise<void> {
-		try {
-			const sftp = await this.getSftp();
-			const stats = await new Promise<import('ssh2').Stats>((resolve, reject) => {
-				sftp.stat(remotePath, (error, result) => error ? reject(error) : resolve(result));
-			});
-			const type = stats.isDirectory()
-				? 'Folder'
-				: stats.isFile()
-					? 'File'
-					: stats.isSymbolicLink()
-						? 'Symbolic Link'
-						: 'Other';
-			const permissions = (stats.mode & 0o7777).toString(8).padStart(4, '0');
-			const detail = [
-				`Path: ${remotePath}`,
-				`Type: ${type}`,
-				`Size: ${stats.size} bytes`,
-				`Permissions: ${permissions}`,
-				`UID: ${stats.uid}`,
-				`GID: ${stats.gid}`,
-				`Accessed: ${new Date(stats.atime * 1000).toLocaleString()}`,
-				`Modified: ${new Date(stats.mtime * 1000).toLocaleString()}`,
-			].join('\n');
-			await vscode.window.showInformationMessage(
-				`Properties: ${path.posix.basename(remotePath) || remotePath}`,
-				{ modal: true, detail },
-			);
-		} catch (error) {
-			void vscode.window.showErrorMessage(`Could not load properties: ${this.errorMessage(error)}`);
 		}
 	}
 

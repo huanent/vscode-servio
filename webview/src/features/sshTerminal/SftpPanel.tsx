@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUp, File, Folder, FolderOpen, LoaderCircle, MoreHorizontal, RefreshCw, Star, X } from '../../components/icons';
+import { ArrowUp, File, Folder, FolderOpen, FolderPlus, LoaderCircle, RefreshCw, Star, Upload, X } from '../../components/icons';
 import { IconButton } from '../../components/button';
 import { TextInput } from '../../components/input';
 import type { SftpEntry } from './types';
@@ -14,7 +14,6 @@ interface SftpActions {
 	toggleFavorite: (path?: string) => void;
 	createDirectory: (path?: string) => void;
 	upload: (path?: string) => void;
-	properties: (path?: string) => void;
 	rename: (path: string) => void;
 	download: (entry: SftpEntry) => void;
 	deleteEntry: (entry: SftpEntry) => void;
@@ -29,20 +28,20 @@ interface ContextMenuState {
 }
 
 const popupClassName = 'rounded-[4px] border border-(--vscode-menu-border,var(--vscode-widget-border,var(--vscode-panel-border))) bg-(--vscode-menu-background) p-1 text-(--vscode-menu-foreground) shadow-[0_4px_14px_var(--vscode-widget-shadow)]';
-const fileGridClassName = 'grid grid-cols-[minmax(140px,1fr)_76px_116px] items-center max-[760px]:grid-cols-[minmax(130px,1fr)_72px]';
+const fileGridClassName = 'grid grid-cols-[minmax(140px,1fr)_72px_112px] items-center max-[760px]:grid-cols-[minmax(130px,1fr)_68px]';
 const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 	const [pathValue, setPathValue] = useState(sftp.sftpPath);
 	const [showFavorites, setShowFavorites] = useState(false);
-	const [showMore, setShowMore] = useState(false);
 	const [menu, setMenu] = useState<ContextMenuState>();
+	const [selectedPath, setSelectedPath] = useState<string>();
 
 	useEffect(() => setPathValue(sftp.sftpPath), [sftp.sftpPath]);
+	useEffect(() => setSelectedPath(undefined), [sftp.sftpPath]);
 	useEffect(() => {
 		const closePopups = () => {
 			setShowFavorites(false);
-			setShowMore(false);
 			setMenu(undefined);
 		};
 		window.addEventListener('blur', closePopups);
@@ -55,8 +54,8 @@ export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 
 	const favorite = sftp.favorites.includes(sftp.sftpPath);
 
-	return <aside className="grid min-h-0 min-w-0 grid-rows-[38px_26px_minmax(0,1fr)] border-l border-(--vscode-panel-border,var(--vscode-widget-border)) bg-(--vscode-editor-background) select-none" aria-label="SFTP file browser">
-		<header className="flex min-w-0 items-center gap-1 border-b border-(--vscode-panel-border,var(--vscode-widget-border)) px-1.5 py-1">
+	return <aside className="grid min-h-0 min-w-0 grid-rows-[40px_27px_minmax(0,1fr)] border-l border-(--vscode-panel-border,var(--vscode-widget-border)) bg-(--vscode-editor-background) select-none" aria-label="SFTP file browser">
+		<header className="flex min-w-0 items-center gap-0.5 border-b border-(--vscode-panel-border,var(--vscode-widget-border)) px-1.5 py-1.5">
 			<IconButton className="size-7 border-0" disabled={!sftp.parentPath || sftp.loading} title="Parent directory" onClick={() => sftp.parentPath && sftp.list(sftp.parentPath)}><ArrowUp size={15} /></IconButton>
 			<IconButton className="size-7 border-0" disabled={sftp.loading} title="Refresh" onClick={() => sftp.list(sftp.sftpPath)}><RefreshCw className={sftp.loading ? 'codicon-modifier-spin' : ''} size={15} /></IconButton>
 			<div className="relative flex min-w-0 flex-1 items-center overflow-visible rounded-[3px] border border-(--vscode-input-border,var(--vscode-widget-border,var(--vscode-panel-border))) bg-(--vscode-input-background) focus-within:border-(--vscode-focusBorder) focus-within:shadow-[0_0_0_1px_var(--vscode-focusBorder)]" onClick={event => event.stopPropagation()} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setShowFavorites(false); }}>
@@ -70,13 +69,11 @@ export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 						setShowFavorites(false);
 					}
 				}} />
-				<IconButton className={`mr-0.5 size-5 border-0 ${favorite ? 'text-(--vscode-charts-yellow)' : 'text-(--vscode-descriptionForeground)'}`} title={favorite ? 'Remove from favorites' : 'Add to favorites'} onClick={event => { event.stopPropagation(); sftp.toggleFavorite(); }}><Star size={12} fill={favorite ? 'currentColor' : 'none'} /></IconButton>
+				<IconButton className={`size-5 border-0 ${favorite ? 'text-(--vscode-charts-yellow)' : 'text-(--vscode-descriptionForeground)'}`} title={favorite ? 'Remove from favorites' : 'Add to favorites'} onClick={event => { event.stopPropagation(); sftp.toggleFavorite(); }}><Star size={12} fill={favorite ? 'currentColor' : 'none'} /></IconButton>
 				{showFavorites && sftp.favorites.length > 0 && <Favorites paths={sftp.favorites} activePath={sftp.sftpPath} onSelect={path => { sftp.list(path); setShowFavorites(false); }} onRemove={path => sftp.toggleFavorite(path)} />}
 			</div>
-			<div className="relative" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setShowMore(false); }}>
-				<IconButton className={`size-7 border-0 ${showMore ? 'bg-(--vscode-toolbar-activeBackground,var(--vscode-toolbar-hoverBackground))' : ''}`} title="More actions" aria-expanded={showMore} onClick={event => { event.stopPropagation(); setShowMore(current => !current); }}><MoreHorizontal size={16} /></IconButton>
-				{showMore && <Menu className="absolute top-8 right-0" onDismiss={() => setShowMore(false)} items={[{ label: 'New Folder', action: () => sftp.createDirectory() }, { label: 'Upload Files', action: () => sftp.upload() }, { label: 'Properties', action: () => sftp.properties() }]} />}
-			</div>
+			<IconButton className="size-7 border-0" disabled={sftp.loading} title="New folder" onClick={() => sftp.createDirectory()}><FolderPlus size={15} /></IconButton>
+			<IconButton className="size-7 border-0" disabled={sftp.loading} title="Upload files" onClick={() => sftp.upload()}><Upload size={15} /></IconButton>
 		</header>
 
 		<div className={`${fileGridClassName} border-b border-(--vscode-panel-border,var(--vscode-widget-border)) px-2.5 text-[10px] font-semibold text-(--vscode-descriptionForeground)`}>
@@ -86,8 +83,8 @@ export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 		</div>
 
 		<div className="relative min-h-0 overflow-hidden">
-			<div className="h-full overflow-auto py-1">
-				{sftp.entries.map(entry => <FileRow key={entry.path} entry={entry} active={menu?.entry.path === entry.path} onOpen={() => entry.isDirectory && sftp.list(entry.path)} onContextMenu={(x, y) => setMenu({ entry, x, y })} />)}
+			<div className="h-full overflow-auto py-0.5" role="listbox" aria-label={`Files in ${sftp.sftpPath}`}>
+				{sftp.entries.map(entry => <FileRow key={entry.path} entry={entry} active={selectedPath === entry.path || menu?.entry.path === entry.path} onSelect={() => setSelectedPath(entry.path)} onOpen={() => entry.isDirectory ? sftp.list(entry.path) : sftp.edit(entry.path)} onContextMenu={(x, y) => { setSelectedPath(entry.path); setMenu({ entry, x, y }); }} />)}
 			</div>
 			{sftp.loading ? <Status icon={<LoaderCircle className="codicon-modifier-spin" size={18} />} title="Loading directory" detail={sftp.sftpPath} /> : sftp.entries.length === 0 && <Status icon={<FolderOpen size={20} />} title="This folder is empty" detail="Upload a file or create a new folder." />}
 		</div>
@@ -106,13 +103,13 @@ function Favorites({ paths, activePath, onSelect, onRemove }: { paths: string[];
 	return <div className={`${popupClassName} absolute top-[calc(100%+5px)] right-0 left-0 z-20 max-h-56 min-w-52 overflow-auto`} role="listbox">
 		{paths.map(path => <div key={path} className={`group flex min-h-7 items-center rounded-[3px] hover:bg-(--vscode-list-hoverBackground) focus-within:bg-(--vscode-list-hoverBackground) ${path === activePath ? 'text-(--vscode-textLink-foreground)' : ''}`} role="option" aria-selected={path === activePath}>
 			<button className="min-w-0 flex-1 overflow-hidden border-0 bg-transparent px-2 text-left font-(family-name:--vscode-editor-font-family) text-[11px] text-ellipsis whitespace-nowrap outline-none" title={path} onClick={() => onSelect(path)}>{path}</button>
-			<button className="mr-0.5 grid size-5 shrink-0 place-items-center rounded-xs border-0 bg-transparent text-(--vscode-icon-foreground) opacity-0 outline-none hover:bg-(--vscode-toolbar-hoverBackground) focus:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100" title="Remove from favorites" aria-label={`Remove ${path} from favorites`} onClick={event => { event.stopPropagation(); onRemove(path); }}><X size={12} /></button>
+			<button className="mr-1 grid size-5 shrink-0 place-items-center rounded-xs border-0 bg-transparent text-(--vscode-icon-foreground) opacity-0 outline-none hover:bg-(--vscode-toolbar-hoverBackground) focus:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100" title="Remove from favorites" aria-label={`Remove ${path} from favorites`} onClick={event => { event.stopPropagation(); onRemove(path); }}><X size={12} /></button>
 		</div>)}
 	</div>;
 }
 
-function FileRow({ entry, active, onOpen, onContextMenu }: { entry: SftpEntry; active: boolean; onOpen: () => void; onContextMenu: (x: number, y: number) => void }) {
-	return <div className={`${fileGridClassName} min-h-8 border-l-2 px-2 hover:bg-(--vscode-list-hoverBackground) ${active ? 'border-l-(--vscode-focusBorder) bg-(--vscode-list-activeSelectionBackground) text-(--vscode-list-activeSelectionForeground)' : 'border-l-transparent'}`} tabIndex={0} title={entry.path} onDoubleClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' && entry.isDirectory) onOpen(); }} onContextMenu={event => { event.preventDefault(); event.stopPropagation(); onContextMenu(event.clientX, event.clientY); }}>
+function FileRow({ entry, active, onSelect, onOpen, onContextMenu }: { entry: SftpEntry; active: boolean; onSelect: () => void; onOpen: () => void; onContextMenu: (x: number, y: number) => void }) {
+	return <div className={`${fileGridClassName} min-h-8 border-l-2 px-2 hover:bg-(--vscode-list-hoverBackground) ${active ? 'border-l-(--vscode-focusBorder) bg-(--vscode-list-activeSelectionBackground) text-(--vscode-list-activeSelectionForeground)' : 'border-l-transparent'}`} role="option" aria-selected={active} tabIndex={0} title={entry.path} onClick={onSelect} onDoubleClick={onOpen} onKeyDown={event => { if (event.key === 'Enter') onOpen(); }} onContextMenu={event => { event.preventDefault(); event.stopPropagation(); onContextMenu(event.clientX, event.clientY); }}>
 		<span className="flex min-w-0 items-center gap-2">
 			{entry.isDirectory ? <Folder className="shrink-0 text-(--vscode-symbolIcon-folderForeground,var(--vscode-icon-foreground))" size={15} /> : <File className="shrink-0 text-(--vscode-symbolIcon-fileForeground,var(--vscode-icon-foreground))" size={15} />}
 			<span className="overflow-hidden text-[11px] text-ellipsis whitespace-nowrap">{entry.name}</span>

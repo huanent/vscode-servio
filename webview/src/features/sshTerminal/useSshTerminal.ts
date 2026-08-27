@@ -52,7 +52,7 @@ export function useSshTerminal(onOutput: (data: string) => void, onPaste: (data:
 		server, status, statusMessage, metrics, sftpVisible, sftpPath, parentPath, entries, favorites, sftpLoading,
 		ready: () => vscode.postMessage({ type: 'ready' }), input: (data: string) => vscode.postMessage({ type: 'input', data }), resize: (rows: number, columns: number) => vscode.postMessage({ type: 'resize', rows, columns }), copy: (data: string) => vscode.postMessage({ type: 'terminalCopy', data }), paste: () => vscode.postMessage({ type: 'terminalPaste' }),
 		list: (path: string) => postPath('sftpList', path), toggleFavorite: (path = sftpPath) => postPath('sftpToggleFavorite', path),
-		createDirectory: (path = sftpPath) => postPath('sftpCreateDirectory', path), upload: (path = sftpPath) => postPath('sftpUpload', path), properties: (path = sftpPath) => postPath('sftpProperties', path),
+		createDirectory: (path = sftpPath) => postPath('sftpCreateDirectory', path), upload: (path = sftpPath) => postPath('sftpUpload', path),
 		download: (entry: SftpEntry) => postPath('sftpDownload', entry.path, { isDirectory: entry.isDirectory }), deleteEntry: (entry: SftpEntry) => postPath('sftpDelete', entry.path, { isDirectory: entry.isDirectory }),
 		copyPath: (path: string) => postPath('sftpCopyPath', path), edit: (path: string) => postPath('sftpEdit', path), rename: (path: string) => postPath('sftpRename', path),
 	};
