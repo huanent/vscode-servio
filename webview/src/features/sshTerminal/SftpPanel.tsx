@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ArrowUp, File, Folder, FolderOpen, FolderPlus, LoaderCircle, RefreshCw, Star, Upload, X } from '../../components/icons';
-import { IconButton } from '../../components/button';
-import { TextInput } from '../../components/input';
+import { FolderOpen, LoaderCircle } from '../../components/icons';
+import { fileGridClassName, SftpFileRow } from './SftpFileRow';
+import { SftpToolbar } from './SftpToolbar';
 import type { SftpEntry } from './types';
 
 interface SftpActions {
@@ -28,62 +28,43 @@ interface ContextMenuState {
 }
 
 const popupClassName = 'rounded-[4px] border border-(--vscode-menu-border,var(--vscode-widget-border,var(--vscode-panel-border))) bg-(--vscode-menu-background) p-1 text-(--vscode-menu-foreground) shadow-[0_4px_14px_var(--vscode-widget-shadow)]';
-const fileGridClassName = 'grid grid-cols-[minmax(140px,1fr)_72px_112px] items-center max-[760px]:grid-cols-[minmax(130px,1fr)_68px]';
 
 export function SftpPanel({ sftp }: { sftp: SftpActions }) {
-	const [pathValue, setPathValue] = useState(sftp.sftpPath);
-	const [showFavorites, setShowFavorites] = useState(false);
 	const [menu, setMenu] = useState<ContextMenuState>();
 	const [selectedPath, setSelectedPath] = useState<string>();
 
-	useEffect(() => setPathValue(sftp.sftpPath), [sftp.sftpPath]);
 	useEffect(() => setSelectedPath(undefined), [sftp.sftpPath]);
 	useEffect(() => {
-		const closePopups = () => {
-			setShowFavorites(false);
-			setMenu(undefined);
-		};
-		window.addEventListener('blur', closePopups);
-		window.addEventListener('click', closePopups);
+		const closeMenu = () => setMenu(undefined);
+		window.addEventListener('blur', closeMenu);
+		window.addEventListener('click', closeMenu);
 		return () => {
-			window.removeEventListener('blur', closePopups);
-			window.removeEventListener('click', closePopups);
+			window.removeEventListener('blur', closeMenu);
+			window.removeEventListener('click', closeMenu);
 		};
 	}, []);
 
-	const favorite = sftp.favorites.includes(sftp.sftpPath);
+	return <aside className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] border-l border-(--vscode-panel-border,var(--vscode-widget-border)) bg-(--vscode-editor-background) select-none" aria-label="SFTP file browser">
+		<SftpToolbar sftpPath={sftp.sftpPath} parentPath={sftp.parentPath} favorites={sftp.favorites} loading={sftp.loading} list={sftp.list} toggleFavorite={sftp.toggleFavorite} createDirectory={sftp.createDirectory} upload={sftp.upload} />
 
-	return <aside className="grid min-h-0 min-w-0 grid-rows-[40px_27px_minmax(0,1fr)] border-l border-(--vscode-panel-border,var(--vscode-widget-border)) bg-(--vscode-editor-background) select-none" aria-label="SFTP file browser">
-		<header className="flex min-w-0 items-center gap-0.5 border-b border-(--vscode-panel-border,var(--vscode-widget-border)) px-1.5 py-1.5">
-			<IconButton className="size-7 border-0" disabled={!sftp.parentPath || sftp.loading} title="Parent directory" onClick={() => sftp.parentPath && sftp.list(sftp.parentPath)}><ArrowUp size={15} /></IconButton>
-			<IconButton className="size-7 border-0" disabled={sftp.loading} title="Refresh" onClick={() => sftp.list(sftp.sftpPath)}><RefreshCw className={sftp.loading ? 'codicon-modifier-spin' : ''} size={15} /></IconButton>
-			<div className="relative flex min-w-0 flex-1 items-center overflow-visible rounded-[3px] border border-(--vscode-input-border,var(--vscode-widget-border,var(--vscode-panel-border))) bg-(--vscode-input-background) focus-within:border-(--vscode-focusBorder) focus-within:shadow-[0_0_0_1px_var(--vscode-focusBorder)]" onClick={event => event.stopPropagation()} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setShowFavorites(false); }}>
-				<TextInput aria-label="Remote path" className="h-6 min-w-0 border-0 bg-transparent px-2 font-(family-name:--vscode-editor-font-family) text-[11px] shadow-none focus:border-transparent" disabled={sftp.loading} spellCheck={false} value={pathValue} onFocus={() => setShowFavorites(true)} onChange={event => setPathValue(event.target.value)} onKeyDown={event => {
-					if (event.key === 'Enter' && pathValue.trim()) {
-						sftp.list(pathValue.trim());
-						setShowFavorites(false);
-					}
-					if (event.key === 'Escape') {
-						setPathValue(sftp.sftpPath);
-						setShowFavorites(false);
-					}
-				}} />
-				<IconButton className={`size-5 border-0 ${favorite ? 'text-(--vscode-charts-yellow)' : 'text-(--vscode-descriptionForeground)'}`} title={favorite ? 'Remove from favorites' : 'Add to favorites'} onClick={event => { event.stopPropagation(); sftp.toggleFavorite(); }}><Star size={12} fill={favorite ? 'currentColor' : 'none'} /></IconButton>
-				{showFavorites && sftp.favorites.length > 0 && <Favorites paths={sftp.favorites} activePath={sftp.sftpPath} onSelect={path => { sftp.list(path); setShowFavorites(false); }} onRemove={path => sftp.toggleFavorite(path)} />}
-			</div>
-			<IconButton className="size-7 border-0" disabled={sftp.loading} title="New folder" onClick={() => sftp.createDirectory()}><FolderPlus size={15} /></IconButton>
-			<IconButton className="size-7 border-0" disabled={sftp.loading} title="Upload files" onClick={() => sftp.upload()}><Upload size={15} /></IconButton>
-		</header>
-
-		<div className={`${fileGridClassName} border-b border-(--vscode-panel-border,var(--vscode-widget-border)) px-2.5 text-[10px] font-semibold text-(--vscode-descriptionForeground)`}>
+		<div className={`${fileGridClassName} border-b border-(--vscode-panel-border,var(--vscode-widget-border)) p-2 text-xs font-semibold text-(--vscode-descriptionForeground)`}>
 			<span>Name</span>
 			<span className="text-right">Size</span>
 			<span className="text-right max-[760px]:hidden">Modified</span>
 		</div>
 
 		<div className="relative min-h-0 overflow-hidden">
-			<div className="h-full overflow-auto py-0.5" role="listbox" aria-label={`Files in ${sftp.sftpPath}`}>
-				{sftp.entries.map(entry => <FileRow key={entry.path} entry={entry} active={selectedPath === entry.path || menu?.entry.path === entry.path} onSelect={() => setSelectedPath(entry.path)} onOpen={() => entry.isDirectory ? sftp.list(entry.path) : sftp.edit(entry.path)} onContextMenu={(x, y) => { setSelectedPath(entry.path); setMenu({ entry, x, y }); }} />)}
+			<div className="h-full overflow-auto" role="listbox" aria-label={`Files in ${sftp.sftpPath}`}>
+				{sftp.entries.map(entry =>
+					<SftpFileRow
+						key={entry.path}
+						entry={entry}
+						active={selectedPath === entry.path || menu?.entry.path === entry.path}
+						onSelect={() => setSelectedPath(entry.path)}
+						onOpen={() => entry.isDirectory ? sftp.list(entry.path) : sftp.edit(entry.path)}
+						onContextMenu={(x, y) => { setSelectedPath(entry.path); setMenu({ entry, x, y }); }}
+					/>
+				)}
 			</div>
 			{sftp.loading ? <Status icon={<LoaderCircle className="codicon-modifier-spin" size={18} />} title="Loading directory" detail={sftp.sftpPath} /> : sftp.entries.length === 0 && <Status icon={<FolderOpen size={20} />} title="This folder is empty" detail="Upload a file or create a new folder." />}
 		</div>
@@ -98,26 +79,6 @@ export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 	</aside>;
 }
 
-function Favorites({ paths, activePath, onSelect, onRemove }: { paths: string[]; activePath: string; onSelect: (path: string) => void; onRemove: (path: string) => void }) {
-	return <div className={`${popupClassName} absolute top-[calc(100%+5px)] right-0 left-0 z-20 max-h-56 min-w-52 overflow-auto`} role="listbox">
-		{paths.map(path => <div key={path} className={`group flex min-h-7 items-center rounded-[3px] hover:bg-(--vscode-list-hoverBackground) focus-within:bg-(--vscode-list-hoverBackground) ${path === activePath ? 'text-(--vscode-textLink-foreground)' : ''}`} role="option" aria-selected={path === activePath}>
-			<button className="min-w-0 flex-1 overflow-hidden border-0 bg-transparent px-2 text-left font-(family-name:--vscode-editor-font-family) text-[11px] text-ellipsis whitespace-nowrap outline-none" title={path} onClick={() => onSelect(path)}>{path}</button>
-			<button className="mr-1 grid size-5 shrink-0 place-items-center rounded-xs border-0 bg-transparent text-(--vscode-icon-foreground) opacity-0 outline-none hover:bg-(--vscode-toolbar-hoverBackground) focus:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100" title="Remove from favorites" aria-label={`Remove ${path} from favorites`} onClick={event => { event.stopPropagation(); onRemove(path); }}><X size={12} /></button>
-		</div>)}
-	</div>;
-}
-
-function FileRow({ entry, active, onSelect, onOpen, onContextMenu }: { entry: SftpEntry; active: boolean; onSelect: () => void; onOpen: () => void; onContextMenu: (x: number, y: number) => void }) {
-	return <div className={`${fileGridClassName} min-h-8 border-l-2 px-2 hover:bg-(--vscode-list-hoverBackground) ${active ? 'border-l-(--vscode-focusBorder) bg-(--vscode-list-activeSelectionBackground) text-(--vscode-list-activeSelectionForeground)' : 'border-l-transparent'}`} role="option" aria-selected={active} tabIndex={0} title={entry.path} onClick={onSelect} onDoubleClick={onOpen} onKeyDown={event => { if (event.key === 'Enter') onOpen(); }} onContextMenu={event => { event.preventDefault(); event.stopPropagation(); onContextMenu(event.clientX, event.clientY); }}>
-		<span className="flex min-w-0 items-center gap-2">
-			{entry.isDirectory ? <Folder className="shrink-0 text-(--vscode-symbolIcon-folderForeground,var(--vscode-icon-foreground))" size={15} /> : <File className="shrink-0 text-(--vscode-symbolIcon-fileForeground,var(--vscode-icon-foreground))" size={15} />}
-			<span className="overflow-hidden text-[11px] text-ellipsis whitespace-nowrap">{entry.name}</span>
-		</span>
-		<span className="overflow-hidden text-right font-(family-name:--vscode-editor-font-family) text-[10px] text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground)">{entry.isDirectory ? '-' : formatFileSize(entry.size)}</span>
-		<span className="overflow-hidden text-right text-[10px] text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground) max-[760px]:hidden">{formatModifiedAt(entry.modifiedAt)}</span>
-	</div>;
-}
-
 function Menu({ items, className, style, onDismiss }: { items: { label: string; danger?: boolean; action: () => void }[]; className: string; style?: React.CSSProperties; onDismiss: () => void }) {
 	return <div className={`${popupClassName} z-30 min-w-44 ${className}`} style={style} tabIndex={-1} autoFocus role="menu" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onDismiss(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) onDismiss(); }}>
 		{items.map(item => <button key={item.label} className={`block min-h-7.5 w-full rounded-[3px] border-0 bg-transparent px-2.5 text-left text-xs outline-none hover:bg-(--vscode-menu-selectionBackground) hover:text-(--vscode-menu-selectionForeground) focus:bg-(--vscode-menu-selectionBackground) focus:text-(--vscode-menu-selectionForeground) ${item.danger ? 'text-(--vscode-errorForeground) hover:text-(--vscode-errorForeground)! focus:text-(--vscode-errorForeground)!' : ''}`} role="menuitem" onClick={event => { event.stopPropagation(); item.action(); onDismiss(); }}>{item.label}</button>)}
@@ -130,22 +91,4 @@ function Status({ icon, title, detail }: { icon: React.ReactNode; title: string;
 		<strong className="text-[11px] font-semibold text-(--vscode-foreground)">{title}</strong>
 		<span className="max-w-60 overflow-hidden text-[10px] text-ellipsis whitespace-nowrap">{detail}</span>
 	</div>;
-}
-
-function formatFileSize(bytes: number) {
-	if (bytes < 1024) return `${bytes} B`;
-	const units = ['KB', 'MB', 'GB', 'TB'];
-	let value = bytes / 1024;
-	let unit = units[0];
-	for (let index = 1; index < units.length && value >= 1024; index++) {
-		value /= 1024;
-		unit = units[index];
-	}
-	return `${value.toFixed(value >= 10 ? 0 : 1)} ${unit}`;
-}
-
-function formatModifiedAt(timestamp: number) {
-	const date = new Date(timestamp);
-	const pad = (value: number) => String(value).padStart(2, '0');
-	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
