@@ -117,7 +117,7 @@ class SshWebviewSession {
 	private connected = false;
 	private disposed = false;
 	private failed = false;
-	private sftpVisible = false;
+	private sftpVisible = true;
 	private sftpPath = '.';
 
 	constructor(

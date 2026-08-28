@@ -29,7 +29,6 @@ interface ContextMenuState {
 
 const popupClassName = 'rounded-[4px] border border-(--vscode-menu-border,var(--vscode-widget-border,var(--vscode-panel-border))) bg-(--vscode-menu-background) p-1 text-(--vscode-menu-foreground) shadow-[0_4px_14px_var(--vscode-widget-shadow)]';
 const fileGridClassName = 'grid grid-cols-[minmax(140px,1fr)_72px_112px] items-center max-[760px]:grid-cols-[minmax(130px,1fr)_68px]';
-const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export function SftpPanel({ sftp }: { sftp: SftpActions }) {
 	const [pathValue, setPathValue] = useState(sftp.sftpPath);
@@ -115,7 +114,7 @@ function FileRow({ entry, active, onSelect, onOpen, onContextMenu }: { entry: Sf
 			<span className="overflow-hidden text-[11px] text-ellipsis whitespace-nowrap">{entry.name}</span>
 		</span>
 		<span className="overflow-hidden text-right font-(family-name:--vscode-editor-font-family) text-[10px] text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground)">{entry.isDirectory ? '-' : formatFileSize(entry.size)}</span>
-		<span className="overflow-hidden text-right text-[10px] text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground) max-[760px]:hidden">{dateFormatter.format(new Date(entry.modifiedAt))}</span>
+		<span className="overflow-hidden text-right text-[10px] text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground) max-[760px]:hidden">{formatModifiedAt(entry.modifiedAt)}</span>
 	</div>;
 }
 
@@ -143,4 +142,10 @@ function formatFileSize(bytes: number) {
 		unit = units[index];
 	}
 	return `${value.toFixed(value >= 10 ? 0 : 1)} ${unit}`;
+}
+
+function formatModifiedAt(timestamp: number) {
+	const date = new Date(timestamp);
+	const pad = (value: number) => String(value).padStart(2, '0');
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
