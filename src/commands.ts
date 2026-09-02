@@ -14,6 +14,7 @@ const commandIds = {
 	exportServer: 'server-hub.exportServer',
 	connectServer: 'server-hub.connectServer',
 	copyHost: 'server-hub.copyHost',
+	copyInfo: 'server-hub.copyInfo',
 	editServer: 'server-hub.editServer',
 	duplicateServer: 'server-hub.duplicateServer',
 	renameGroup: 'server-hub.renameGroup',
@@ -21,6 +22,8 @@ const commandIds = {
 	moveGroupDown: 'server-hub.moveGroupDown',
 	moveServerUp: 'server-hub.moveServerUp',
 	moveServerDown: 'server-hub.moveServerDown',
+	moveSelectionUp: 'server-hub.moveSelectionUp',
+	moveSelectionDown: 'server-hub.moveSelectionDown',
 	deleteServer: 'server-hub.deleteServer',
 	openSftp: 'server-hub.openSftp',
 	searchServers: 'server-hub.searchServers',
@@ -31,6 +34,7 @@ const commandIds = {
 export function registerServerCommands(
 	serverStore: ServerStore,
 	treeDataProvider: ServerTreeDataProvider,
+	treeView: vscode.TreeView<ServerGroupTreeItem | ServerTreeItem>,
 ): vscode.Disposable {
 	return vscode.Disposable.from(
 		vscode.commands.registerCommand(commandIds.addServer, selectAndAddServer),
@@ -58,6 +62,10 @@ export function registerServerCommands(
 			(item: ServerTreeItem) => vscode.env.clipboard.writeText(getConnectionAddress(item.server)),
 		),
 		vscode.commands.registerCommand(
+			commandIds.copyInfo,
+			(item: ServerTreeItem) => vscode.env.clipboard.writeText(getServerInfo(item.server)),
+		),
+		vscode.commands.registerCommand(
 			commandIds.editServer,
 			(item: ServerTreeItem) => openServerForm(item.server.type, item.server),
 		),
@@ -71,19 +79,27 @@ export function registerServerCommands(
 		),
 		vscode.commands.registerCommand(
 			commandIds.moveGroupUp,
-			(item: ServerGroupTreeItem) => serverStore.moveGroup(item.group, 'up'),
+			(item?: ServerGroupTreeItem) => moveSelectedGroup(serverStore, treeView, item, 'up'),
 		),
 		vscode.commands.registerCommand(
 			commandIds.moveGroupDown,
-			(item: ServerGroupTreeItem) => serverStore.moveGroup(item.group, 'down'),
+			(item?: ServerGroupTreeItem) => moveSelectedGroup(serverStore, treeView, item, 'down'),
 		),
 		vscode.commands.registerCommand(
 			commandIds.moveServerUp,
-			(item: ServerTreeItem) => serverStore.moveServer(item.server.id, 'up'),
+			(item?: ServerTreeItem) => moveSelectedServer(serverStore, treeView, item, 'up'),
 		),
 		vscode.commands.registerCommand(
 			commandIds.moveServerDown,
-			(item: ServerTreeItem) => serverStore.moveServer(item.server.id, 'down'),
+			(item?: ServerTreeItem) => moveSelectedServer(serverStore, treeView, item, 'down'),
+		),
+		vscode.commands.registerCommand(
+			commandIds.moveSelectionUp,
+			() => moveTreeSelection(serverStore, treeView, 'up'),
+		),
+		vscode.commands.registerCommand(
+			commandIds.moveSelectionDown,
+			() => moveTreeSelection(serverStore, treeView, 'down'),
 		),
 		vscode.commands.registerCommand(
 			commandIds.deleteServer,
@@ -100,6 +116,43 @@ export function registerServerCommands(
 			(item: ServerTreeItem | vscode.Uri) => runSshCommand(serverStore, item),
 		),
 	);
+}
+
+function moveTreeSelection(
+	serverStore: ServerStore,
+	treeView: vscode.TreeView<ServerGroupTreeItem | ServerTreeItem>,
+	direction: 'up' | 'down',
+): Promise<void> | undefined {
+	const selectedItem = treeView.selection[0];
+	return selectedItem instanceof ServerGroupTreeItem
+		? serverStore.moveGroup(selectedItem.group, direction)
+		: selectedItem instanceof ServerTreeItem
+			? serverStore.moveServer(selectedItem.server.id, direction)
+			: undefined;
+}
+
+function moveSelectedGroup(
+	serverStore: ServerStore,
+	treeView: vscode.TreeView<ServerGroupTreeItem | ServerTreeItem>,
+	item: ServerGroupTreeItem | undefined,
+	direction: 'up' | 'down',
+): Promise<void> | undefined {
+	const selectedItem = item ?? treeView.selection[0];
+	if (selectedItem instanceof ServerGroupTreeItem) {
+		return serverStore.moveGroup(selectedItem.group, direction);
+	}
+}
+
+function moveSelectedServer(
+	serverStore: ServerStore,
+	treeView: vscode.TreeView<ServerGroupTreeItem | ServerTreeItem>,
+	item: ServerTreeItem | undefined,
+	direction: 'up' | 'down',
+): Promise<void> | undefined {
+	const selectedItem = item ?? treeView.selection[0];
+	if (selectedItem instanceof ServerTreeItem) {
+		return serverStore.moveServer(selectedItem.server.id, direction);
+	}
 }
 
 async function runSshCommand(serverStore: ServerStore, item: ServerTreeItem | vscode.Uri): Promise<void> {
@@ -144,6 +197,11 @@ function getConnectionAddress(server: Server): string {
 		case 'mysql': return server.host;
 		case 'ssh': return server.host;
 	}
+}
+
+function getServerInfo(server: Server): string {
+	const type = server.type === 'ssh' ? 'SSH' : server.type === 'mysql' ? 'MySQL' : 'Container';
+	return `"${type} ${server.name} ${getConnectionAddress(server)}"`;
 }
 
 async function searchServers(treeDataProvider: ServerTreeDataProvider): Promise<void> {
