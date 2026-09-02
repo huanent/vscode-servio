@@ -3,8 +3,8 @@ import { FolderOpen, KeyRound, Pencil, Plus, Save, Trash2 } from '../../componen
 import { IconButton, PrimaryButton } from '../../components/button';
 import { Field } from '../../components/field';
 import { PasswordInput, TextArea, TextInput } from '../../components/input';
+import { SegmentedControl } from '../../components/segmentedControl';
 import { CommandDialog } from './components/CommandDialog';
-import { SegmentedControl } from './components/SegmentedControl';
 import { useServerForm } from './hooks/useServerForm';
 
 export function App() {
