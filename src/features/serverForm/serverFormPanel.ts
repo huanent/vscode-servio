@@ -11,10 +11,11 @@ export async function configureServerForm(
 	serverStore: ServerStore,
 	serverType: ServerType,
 	existingServer?: Server,
+	duplicate = false,
 ): Promise<void> {
-	const isEditing = existingServer !== undefined;
+	const isEditing = existingServer !== undefined && !duplicate;
 	const typeLabel = serverType === 'mysql' ? 'MySQL' : serverType === 'container' ? 'Container' : 'SSH';
-	const title = `${isEditing ? 'Edit' : 'Add'} ${typeLabel} Server`;
+	const title = isEditing ? `Edit ${existingServer.name} Server` : `Add ${typeLabel} Server`;
 	const credentials = existingServer ? await serverStore.getCredentials(existingServer.id) : {};
 	const sshServers = serverStore.getServers().filter((server): server is SshServer => server.type === 'ssh');
 
@@ -34,6 +35,7 @@ export async function configureServerForm(
 			existingServer,
 			credentials,
 			sshServers,
+			duplicate,
 		),
 		undefined,
 		context.subscriptions,
@@ -49,13 +51,14 @@ async function handleMessage(
 	existingServer: Server | undefined,
 	credentials: ServerCredentials,
 	sshServers: SshServer[],
+	duplicate: boolean,
 ): Promise<void> {
 	if (message.type === 'ready') {
 		await panel.webview.postMessage({
 			type: 'initialize',
 			model: {
 				serverType,
-				server: existingServer,
+				server: duplicate && existingServer ? clearServerHost(existingServer) : existingServer,
 				credentials,
 				groups: serverStore.getGroups(),
 				sshServers,
@@ -87,7 +90,7 @@ async function handleMessage(
 		return;
 	}
 
-	const server = parseServerForm(message, serverType, existingServer?.id);
+	const server = parseServerForm(message, serverType, duplicate ? undefined : existingServer?.id);
 	const submittedCredentials = {
 		password: normalizePassword(message.password),
 		privateKey: normalizePassword(message.privateKey),
@@ -129,6 +132,10 @@ async function handleMessage(
 
 	await serverStore.saveServer(server, nextCredentials);
 	panel.dispose();
+}
+
+function clearServerHost(server: Server): Server {
+	return 'host' in server ? { ...server, host: '' } : server;
 }
 
 async function selectFile(panel: vscode.WebviewPanel, title: string, type: string): Promise<void> {

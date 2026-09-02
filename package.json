@@ -2,7 +2,7 @@
   "name": "server-hub",
   "displayName": "ServerHub",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -212,6 +212,11 @@
         "icon": "$(edit)"
       },
       {
+        "command": "server-hub.duplicateServer",
+        "title": "Duplicate Connection",
+        "icon": "$(copy)"
+      },
+      {
         "command": "server-hub.renameGroup",
         "title": "Rename",
         "icon": "$(edit)"
@@ -361,19 +366,24 @@
           "group": "1_modification"
         },
         {
+          "command": "server-hub.duplicateServer",
+          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
+          "group": "1_modification@1"
+        },
+        {
           "command": "server-hub.runSshCommand",
           "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^sshServer:.*hasCommands/",
-          "group": "1_modification@1"
+          "group": "1_modification@2"
         },
         {
           "command": "server-hub.copyHost",
           "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
-          "group": "1_modification@2"
+          "group": "1_modification@3"
         },
         {
           "command": "server-hub.exportServer",
           "when": "view == server-hub.servers && viewItem =~ /^(ssh|mysql|container)Server/",
-          "group": "1_modification@3"
+          "group": "1_modification@4"
         },
         {
           "command": "server-hub.moveServerUp",

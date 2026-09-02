@@ -32,7 +32,7 @@ export function registerServerHubEditor(
 				if (!serverType) {
 					throw new Error('The server form does not specify a server type.');
 				}
-				await configureServerForm(context, panel, serverStore, serverType, server);
+				await configureServerForm(context, panel, serverStore, serverType, server, descriptor.duplicate);
 				return;
 			}
 
@@ -90,8 +90,8 @@ export function registerServerHubEditor(
 	});
 }
 
-export function openServerForm(serverType: ServerType, server?: Server): Thenable<unknown> {
-	return openEditor({ kind: 'serverForm', serverType, serverId: server?.id });
+export function openServerForm(serverType: ServerType, server?: Server, duplicate = false): Thenable<unknown> {
+	return openEditor({ kind: 'serverForm', serverType, serverId: server?.id, duplicate });
 }
 
 export function openServerConnection(server: Server): Thenable<unknown> {

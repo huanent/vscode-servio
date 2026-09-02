@@ -15,6 +15,7 @@ const commandIds = {
 	connectServer: 'server-hub.connectServer',
 	copyHost: 'server-hub.copyHost',
 	editServer: 'server-hub.editServer',
+	duplicateServer: 'server-hub.duplicateServer',
 	renameGroup: 'server-hub.renameGroup',
 	moveGroupUp: 'server-hub.moveGroupUp',
 	moveGroupDown: 'server-hub.moveGroupDown',
@@ -59,6 +60,10 @@ export function registerServerCommands(
 		vscode.commands.registerCommand(
 			commandIds.editServer,
 			(item: ServerTreeItem) => openServerForm(item.server.type, item.server),
+		),
+		vscode.commands.registerCommand(
+			commandIds.duplicateServer,
+			(item: ServerTreeItem) => openServerForm(item.server.type, item.server, true),
 		),
 		vscode.commands.registerCommand(
 			commandIds.renameGroup,
