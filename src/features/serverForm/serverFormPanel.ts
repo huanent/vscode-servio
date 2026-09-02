@@ -119,16 +119,20 @@ async function handleMessage(
 	const existingUsesOwnCredentials = existingServer?.type === 'ssh'
 		|| existingServer?.type === 'mysql'
 		|| existingServer?.type === 'container' && existingServer.connectionType === 'ssh' && !existingServer.sshServerId;
+	const hasStoredCredential = server && usesPrivateKey(server)
+		? Boolean(credentials.privateKey)
+		: Boolean(credentials.password);
 	const credentialsChanged = usesOwnCredentials
 		&& (!existingUsesOwnCredentials || existingServer === undefined || usesPrivateKey(server) !== usesPrivateKey(existingServer));
-	const requiresCredential = usesOwnCredentials && (!existingServer || credentialsChanged);
+	const requiresCredential = usesOwnCredentials && (!existingServer || credentialsChanged || !hasStoredCredential);
 	const hasCredential = server && usesPrivateKey(server) ? Boolean(nextCredentials.privateKey) : Boolean(nextCredentials.password);
 	const nextProxy = server && server.type !== 'container' && 'proxy' in server ? server.proxy : undefined;
 	const proxyCredentialRequired = Boolean(nextProxy)
 		&& (!existingServer
 			|| !('proxy' in existingServer)
 			|| !existingServer.proxy
-			|| existingServer.proxy.authType !== nextProxy?.authType);
+			|| existingServer.proxy.authType !== nextProxy?.authType
+			|| (nextProxy?.authType === 'privateKey' ? !credentials.proxyPrivateKey : !credentials.proxyPassword));
 	const hasProxyCredential = nextProxy?.authType === 'privateKey'
 		? Boolean(submittedCredentials.proxyPrivateKey)
 		: Boolean(submittedCredentials.proxyPassword);

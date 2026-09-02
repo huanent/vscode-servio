@@ -165,6 +165,7 @@ export class ServerStore {
 			}
 		});
 		await this.reloadServers();
+		await this.migrateSecretCredentials();
 		await this.enqueueMutation(() => this.writeServers(this.servers));
 	}
 
@@ -210,9 +211,12 @@ export class ServerStore {
 		];
 		const orderedStoredServers = orderedIds.map(serverId => storedServersById.get(serverId)!);
 		const servers = orderedStoredServers.map(({ server }) => server);
-		const credentials = new Map(storedServers
-			.filter(({ hasCredentials }) => hasCredentials)
-			.map(({ server, credentials }) => [server.id, credentials]));
+		const credentials = new Map(orderedStoredServers.map(storedServer => {
+			const duplicateCredentials = storedServers
+				.filter(candidate => candidate.server.id === storedServer.server.id && candidate.hasCredentials)
+				.map(candidate => candidate.credentials);
+			return [storedServer.server.id, mergeCredentials(storedServer.credentials, duplicateCredentials)] as const;
+		}));
 		if (JSON.stringify(servers) === JSON.stringify(this.servers)
 			&& JSON.stringify([...credentials]) === JSON.stringify([...this.credentials])) {
 			return;
@@ -309,6 +313,28 @@ export class ServerStore {
 		});
 	}
 
+	private async migrateSecretCredentials(): Promise<void> {
+		await Promise.all(this.servers.map(async server => {
+			if (server.type === 'container' && (server.connectionType === 'local' || server.sshServerId)) {
+				return;
+			}
+			const current = this.credentials.get(server.id) ?? {};
+			const [password, privateKey, passphrase] = await Promise.all([
+				current.password ? undefined : this.context.secrets.get(passwordKey(server.id)),
+				current.privateKey ? undefined : this.context.secrets.get(privateKeyKey(server.id)),
+				current.passphrase ? undefined : this.context.secrets.get(passphraseKey(server.id)),
+			]);
+			if (!password && !privateKey && !passphrase) {
+				return;
+			}
+			this.saveCredentials(server, {
+				password: current.password || password,
+				privateKey: current.privateKey || privateKey,
+				passphrase: current.passphrase || passphrase,
+			}, true);
+		}));
+	}
+
 	dispose(): void {
 		this.watcher?.close();
 		if (this.reloadTimer) {
@@ -379,6 +405,19 @@ function parseStoredServer(value: unknown, fileName = ''): StoredServer | undefi
 			proxyPassphrase: typeof record.proxyPassphrase === 'string' ? record.proxyPassphrase : undefined,
 		},
 		hasCredentials: 'password' in record || 'privateKey' in record || 'passphrase' in record || 'proxyPassword' in record || 'proxyPrivateKey' in record || 'proxyPassphrase' in record,
+	};
+}
+
+function mergeCredentials(preferred: ServerCredentials, candidates: ServerCredentials[]): ServerCredentials {
+	const firstValue = (key: keyof ServerCredentials) => preferred[key]
+		|| candidates.find(candidate => candidate[key])?.[key];
+	return {
+		password: firstValue('password'),
+		privateKey: firstValue('privateKey'),
+		passphrase: firstValue('passphrase'),
+		proxyPassword: firstValue('proxyPassword'),
+		proxyPrivateKey: firstValue('proxyPrivateKey'),
+		proxyPassphrase: firstValue('proxyPassphrase'),
 	};
 }
 
