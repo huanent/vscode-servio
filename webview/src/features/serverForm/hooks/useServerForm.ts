@@ -100,3 +100,5 @@ export function useServerForm() {
 		selectProxyPrivateKey: () => vscode.postMessage({ type: 'selectProxyPrivateKey' }),
 	};
 }
+
+export type ServerFormState = ReturnType<typeof useServerForm>;

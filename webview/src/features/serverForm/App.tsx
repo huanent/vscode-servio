@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { FolderOpen, KeyRound, Pencil, Plus, Save, Trash2 } from '../../components/icons';
-import { IconButton, PrimaryButton } from '../../components/button';
+import { Save } from '../../components/icons';
+import { PrimaryButton } from '../../components/button';
 import { Field } from '../../components/field';
-import { PasswordInput, TextArea, TextInput } from '../../components/input';
-import { SegmentedControl } from '../../components/segmentedControl';
-import { CommandDialog } from './components/CommandDialog';
+import { TextInput } from '../../components/input';
+import { AuthenticationFields } from './components/AuthenticationFields';
+import { CommandFields } from './components/CommandFields';
+import { ContainerFields } from './components/ContainerFields';
+import { NetworkFields } from './components/NetworkFields';
+import { ProxyFields } from './components/ProxyFields';
 import { useServerForm } from './hooks/useServerForm';
 
 export function App() {
@@ -69,119 +72,5 @@ export function App() {
 				</div>
 			</main>
 		</form>
-	);
-}
-
-type FormState = ReturnType<typeof useServerForm>;
-
-function NetworkFields({ form }: { form: FormState }) {
-	const { model, values } = form;
-	return <>
-		<div className="grid grid-cols-[minmax(0,1fr)_112px] gap-3 max-[440px]:grid-cols-1">
-			<Field label="Host" required><TextInput required placeholder="server.example.com" value={values.host} onChange={event => form.update('host', event.target.value)} /></Field>
-			<Field label="Port" required><TextInput required type="number" min={1} max={65535} value={values.port} onChange={event => form.update('port', event.target.value)} /></Field>
-		</div>
-		<Field label="Username" required><TextInput required autoComplete="username" placeholder="root" value={values.username} onChange={event => form.update('username', event.target.value)} /></Field>
-		{model!.serverType === 'mysql' && <Field label="Database" required><TextInput required placeholder="app" value={values.database} onChange={event => form.update('database', event.target.value)} /></Field>}
-	</>;
-}
-
-function ContainerFields({ form }: { form: FormState }) {
-	const { values } = form;
-	const runtimeDefaults = { docker: 'docker', podman: 'podman', apple: '/opt/homebrew/bin/container' } as const;
-	return <>
-		<SegmentedControl label="Container runtime" value={values.runtime} options={[{ value: 'docker', label: 'Docker' }, { value: 'podman', label: 'Podman' }, { value: 'apple', label: 'Apple' }]} onChange={value => { form.update('runtime', value); form.update('executablePath', runtimeDefaults[value]); }} />
-		<Field label="Executable" required>
-			<span className="input-action-group flex">
-				<TextInput className="min-w-0 border-r-0" required placeholder="docker" value={values.executablePath} onChange={event => form.update('executablePath', event.target.value)} />
-				<IconButton className="input-action-button" type="button" title="Select executable" aria-label="Select executable" onClick={form.selectExecutable}><FolderOpen size={16} /></IconButton>
-			</span>
-		</Field>
-	</>;
-}
-
-function ProxyFields({ form }: { form: FormState }) {
-	const { model, values } = form;
-	const credentialRequired = values.proxyAuthType === 'privateKey'
-		? !values.proxyPrivateKey
-		: !values.proxyPassword;
-	const updateProxyMode = (mode: 'none' | 'ssh' | 'command') => {
-		form.update('proxyMode', mode);
-		form.update('proxyEnabled', mode === 'ssh');
-		if (mode === 'none') {
-			form.update('proxyCommand', '');
-		}
-	};
-	const updateProxy = <Key extends 'proxyHost' | 'proxyPort' | 'proxyUsername' | 'proxyAuthType' | 'proxyPassword' | 'proxyPrivateKey' | 'proxyPassphrase'>(key: Key, value: FormState['values'][Key]) => {
-		if (model!.serverType === 'container' && values.sshServerId) {
-			form.update('sshServerId', '');
-		}
-		form.update(key, value);
-	};
-	return <section aria-labelledby="proxy-heading">
-		<h2 className="mt-0 mb-3.5 text-sm font-semibold" id="proxy-heading">Proxy settings</h2>
-		<div className="grid gap-3.5">
-			<SegmentedControl label="Proxy type" value={values.proxyMode} options={[{ value: 'none', label: 'None' }, { value: 'ssh', label: 'SSH' }, { value: 'command', label: 'Proxy command' }]} onChange={updateProxyMode} />
-			{values.proxyMode === 'ssh' && <>
-				<div className="grid grid-cols-[minmax(0,1fr)_112px] gap-3 max-[440px]:grid-cols-1">
-					<Field label="SSH host" required><TextInput required placeholder="bastion.example.com" value={values.proxyHost} onChange={event => updateProxy('proxyHost', event.target.value)} /></Field>
-					<Field label="Port" required><TextInput required type="number" min={1} max={65535} value={values.proxyPort} onChange={event => updateProxy('proxyPort', event.target.value)} /></Field>
-				</div>
-				<Field label="Username" required><TextInput required autoComplete="username" placeholder="root" value={values.proxyUsername} onChange={event => updateProxy('proxyUsername', event.target.value)} /></Field>
-				<SegmentedControl label="SSH authentication method" value={values.proxyAuthType} options={[{ value: 'password', label: 'Password' }, { value: 'privateKey', label: 'Private key' }]} onChange={value => updateProxy('proxyAuthType', value)} />
-				{values.proxyAuthType === 'password'
-					? <Field label="SSH password" required={credentialRequired}><PasswordInput value={values.proxyPassword} required={credentialRequired} onChange={event => updateProxy('proxyPassword', event.target.value)} /></Field>
-					: <>
-						<Field label="SSH private key" required={credentialRequired} action={<IconButton className="size-6 border-0" type="button" title="Select proxy private key" aria-label="Select proxy private key" onClick={form.selectProxyPrivateKey}><KeyRound size={14} /></IconButton>}>
-							<TextArea required={credentialRequired} spellCheck={false} placeholder="Paste the PEM or OpenSSH private key" value={values.proxyPrivateKey} onChange={event => updateProxy('proxyPrivateKey', event.target.value)} />
-						</Field>
-						<Field label="SSH key passphrase"><PasswordInput placeholder="Optional" value={values.proxyPassphrase} onChange={event => updateProxy('proxyPassphrase', event.target.value)} /></Field>
-					</>}
-			</>}
-			{values.proxyMode === 'command' && <Field label="Proxy command" required><TextInput required spellCheck={false} placeholder="cloudflared access tcp --hostname example.com" value={values.proxyCommand} onChange={event => form.update('proxyCommand', event.target.value)} /></Field>}
-		</div>
-	</section>;
-}
-
-function AuthenticationFields({ form }: { form: FormState }) {
-	const { model, values } = form;
-	const supportsPrivateKey = model!.serverType !== 'mysql';
-	const credentialRequired = values.authType === 'privateKey'
-		? !values.privateKey
-		: !values.password;
-	return <>
-		{supportsPrivateKey && <SegmentedControl label="Authentication method" value={values.authType} options={[{ value: 'password', label: 'Password' }, { value: 'privateKey', label: 'Private key' }]} onChange={value => form.update('authType', value)} />}
-		{values.authType === 'password' || !supportsPrivateKey
-			? <Field label="Password" required={credentialRequired}><PasswordInput value={values.password} required={credentialRequired} onChange={event => form.update('password', event.target.value)} /></Field>
-			: <>
-				<Field label="Private key" required={credentialRequired} action={<IconButton className="size-6 border-0" type="button" title="Select private key" aria-label="Select private key" onClick={form.selectPrivateKey}><KeyRound size={14} /></IconButton>}>
-					<TextArea required={credentialRequired} spellCheck={false} placeholder="Paste the PEM or OpenSSH private key" value={values.privateKey} onChange={event => form.update('privateKey', event.target.value)} />
-				</Field>
-				<Field label="Key passphrase"><PasswordInput placeholder="Optional" value={values.passphrase} onChange={event => form.update('passphrase', event.target.value)} /></Field>
-			</>}
-	</>;
-}
-
-function CommandFields({ form }: { form: FormState }) {
-	const commands = form.values.commands;
-	const [editingIndex, setEditingIndex] = useState<number | 'new'>();
-	const saveCommand = (command: typeof commands[number]) => {
-		form.update('commands', editingIndex === 'new' ? [...commands, command] : commands.map((current, index) => index === editingIndex ? command : current));
-		setEditingIndex(undefined);
-	};
-	return (
-		<section aria-labelledby="commands-heading">
-			<div className="mb-3.5 flex items-center justify-between gap-3">
-				<h2 className="m-0 text-sm font-semibold" id="commands-heading">Commands</h2>
-				<IconButton type="button" title="Add command" aria-label="Add command" onClick={() => setEditingIndex('new')}><Plus size={16} /></IconButton>
-			</div>
-			{commands.length === 0 ? <div className="border border-dashed border-(--vscode-panel-border,var(--vscode-widget-border)) px-4 py-8 text-center text-sm text-(--vscode-descriptionForeground)">No commands configured.</div> : <div className="divide-y divide-(--vscode-panel-border,var(--vscode-widget-border)) border-y border-(--vscode-panel-border,var(--vscode-widget-border))">
-				{commands.map((command, index) => <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5" key={index}>
-					<button className="flex min-w-0 items-baseline gap-3 overflow-hidden border-0 bg-transparent px-1 text-left" type="button" onClick={() => setEditingIndex(index)}><strong className="shrink-0 text-sm whitespace-nowrap">{command.name}</strong><span className="min-w-0 overflow-hidden font-(family-name:--vscode-editor-font-family) text-xs text-ellipsis whitespace-nowrap text-(--vscode-descriptionForeground)">{command.value.replace(/\s+/g, ' ')}</span></button>
-					<span className="flex gap-1"><IconButton className="border-0" type="button" title="Edit command" aria-label="Edit command" onClick={() => setEditingIndex(index)}><Pencil size={15} /></IconButton><IconButton className="border-0" type="button" title="Remove command" aria-label="Remove command" onClick={() => form.update('commands', commands.filter((_, commandIndex) => commandIndex !== index))}><Trash2 size={15} /></IconButton></span>
-				</div>)}
-			</div>}
-			{editingIndex !== undefined && <CommandDialog command={editingIndex === 'new' ? undefined : commands[editingIndex]} onClose={() => setEditingIndex(undefined)} onSave={saveCommand} />}
-		</section>
 	);
 }
