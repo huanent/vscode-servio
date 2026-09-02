@@ -25,3 +25,7 @@ ServerHub keeps SSH and MySQL connections close to your VS Code workspace.
 7. Right-click a server to edit or delete it.
 
 Use the import and export buttons in the Server List title to move connections between devices. Export files contain passwords, private keys, and key passphrases in plain text, so keep them secure and delete them when they are no longer needed.
+
+## Server storage
+
+When `server-hub.serverStoragePath` is configured, each server is stored in a stable `<server-id>.json` file and its tree position is recorded in `order.json`. Reordering servers only updates `order.json`, which avoids renaming every server file in synchronized directories such as iCloud Drive. Existing numbered server files are migrated automatically, and repeated files with the same server ID are collapsed during loading.

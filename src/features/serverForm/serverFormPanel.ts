@@ -25,6 +25,7 @@ export async function configureServerForm(
 		localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
 	};
 	panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri, 'serverForm', title);
+	const saveState = { inProgress: false };
 	panel.webview.onDidReceiveMessage(
 		(message: ServerFormWebviewMessage) => handleMessage(
 			message,
@@ -36,6 +37,7 @@ export async function configureServerForm(
 			credentials,
 			sshServers,
 			duplicate,
+			saveState,
 		),
 		undefined,
 		context.subscriptions,
@@ -52,6 +54,7 @@ async function handleMessage(
 	credentials: ServerCredentials,
 	sshServers: SshServer[],
 	duplicate: boolean,
+	saveState: { inProgress: boolean },
 ): Promise<void> {
 	if (message.type === 'ready') {
 		await panel.webview.postMessage({
@@ -89,6 +92,10 @@ async function handleMessage(
 		}
 		return;
 	}
+	if (saveState.inProgress) {
+		return;
+	}
+	saveState.inProgress = true;
 
 	const server = parseServerForm(message, serverType, duplicate ? undefined : existingServer?.id);
 	const submittedCredentials = {
@@ -126,12 +133,18 @@ async function handleMessage(
 		? Boolean(submittedCredentials.proxyPrivateKey)
 		: Boolean(submittedCredentials.proxyPassword);
 	if (!server || (requiresCredential && !hasCredential) || (proxyCredentialRequired && !hasProxyCredential)) {
+		saveState.inProgress = false;
 		await panel.webview.postMessage({ type: 'error', message: 'Please complete all required fields.' });
 		return;
 	}
 
-	await serverStore.saveServer(server, nextCredentials);
-	panel.dispose();
+	try {
+		await serverStore.saveServer(server, nextCredentials);
+		panel.dispose();
+	} catch (error) {
+		saveState.inProgress = false;
+		await panel.webview.postMessage({ type: 'error', message: `Could not save the server: ${error instanceof Error ? error.message : String(error)}` });
+	}
 }
 
 function clearServerHost(server: Server): Server {
