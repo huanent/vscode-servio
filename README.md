@@ -28,4 +28,4 @@ Use the import and export buttons in the Server List title to move connections b
 
 ## Server storage
 
-When `server-hub.serverStoragePath` is configured, each server is stored in a stable `<server-id>.json` file and its tree position is recorded in `order.json`. Reordering servers only updates `order.json`, which avoids renaming every server file in synchronized directories such as iCloud Drive. Existing numbered server files are migrated automatically, and repeated files with the same server ID are collapsed during loading.
+Servers are stored in the extension's global storage directory by default. When `server-hub.storagePath` is configured, that directory is used instead. Each server is stored in a stable `<server-id>.json` file, including its credentials, and its tree position is recorded in `order.json`.

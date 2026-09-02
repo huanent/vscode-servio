@@ -4,8 +4,7 @@ import { isAbsolute, resolve } from 'node:path';
 import * as vscode from 'vscode';
 import { ExportedServer, parseServer, Server, usesPrivateKey } from './server';
 
-const serverStoragePathSetting = 'serverStoragePath';
-const legacyServerFilePattern = /^\d{6}-.+\.json$/;
+const storagePathSetting = 'storagePath';
 const serverOrderFileName = 'order.json';
 const serverOrderVersion = 1;
 
@@ -31,7 +30,7 @@ export class ServerStore {
 	private mutationQueue: Promise<void> = Promise.resolve();
 	private writeInProgress = false;
 
-	private constructor(private readonly context: vscode.ExtensionContext) {
+	private constructor(context: vscode.ExtensionContext) {
 		this.serversDirectoryUri = getServersDirectoryUri(context);
 	}
 
@@ -165,7 +164,6 @@ export class ServerStore {
 			}
 		});
 		await this.reloadServers();
-		await this.migrateSecretCredentials();
 		await this.enqueueMutation(() => this.writeServers(this.servers));
 	}
 
@@ -192,18 +190,13 @@ export class ServerStore {
 		const storedServers = (await Promise.all(serverFiles.map(async name => {
 			try {
 				const content = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.serversDirectoryUri, name));
-				return parseStoredServer(JSON.parse(Buffer.from(content).toString('utf8')), name);
+				const storedServer = parseStoredServer(JSON.parse(Buffer.from(content).toString('utf8')));
+				return storedServer && name === serverFileName(storedServer.server) ? storedServer : undefined;
 			} catch {
 				return undefined;
 			}
 		}))).filter((storedServer): storedServer is StoredServer => storedServer !== undefined);
-		const storedServersById = new Map<string, StoredServer>();
-		for (const storedServer of storedServers) {
-			const current = storedServersById.get(storedServer.server.id);
-			if (!current || !legacyServerFilePattern.test(storedServer.fileName)) {
-				storedServersById.set(storedServer.server.id, storedServer);
-			}
-		}
+		const storedServersById = new Map(storedServers.map(storedServer => [storedServer.server.id, storedServer]));
 		const serverOrder = await this.readServerOrder();
 		const orderedIds = [
 			...serverOrder.filter(serverId => storedServersById.has(serverId)),
@@ -211,12 +204,9 @@ export class ServerStore {
 		];
 		const orderedStoredServers = orderedIds.map(serverId => storedServersById.get(serverId)!);
 		const servers = orderedStoredServers.map(({ server }) => server);
-		const credentials = new Map(orderedStoredServers.map(storedServer => {
-			const duplicateCredentials = storedServers
-				.filter(candidate => candidate.server.id === storedServer.server.id && candidate.hasCredentials)
-				.map(candidate => candidate.credentials);
-			return [storedServer.server.id, mergeCredentials(storedServer.credentials, duplicateCredentials)] as const;
-		}));
+		const credentials = new Map(orderedStoredServers.map(
+			storedServer => [storedServer.server.id, storedServer.credentials] as const,
+		));
 		if (JSON.stringify(servers) === JSON.stringify(this.servers)
 			&& JSON.stringify([...credentials]) === JSON.stringify([...this.credentials])) {
 			return;
@@ -313,28 +303,6 @@ export class ServerStore {
 		});
 	}
 
-	private async migrateSecretCredentials(): Promise<void> {
-		await Promise.all(this.servers.map(async server => {
-			if (server.type === 'container' && (server.connectionType === 'local' || server.sshServerId)) {
-				return;
-			}
-			const current = this.credentials.get(server.id) ?? {};
-			const [password, privateKey, passphrase] = await Promise.all([
-				current.password ? undefined : this.context.secrets.get(passwordKey(server.id)),
-				current.privateKey ? undefined : this.context.secrets.get(privateKeyKey(server.id)),
-				current.passphrase ? undefined : this.context.secrets.get(passphraseKey(server.id)),
-			]);
-			if (!password && !privateKey && !passphrase) {
-				return;
-			}
-			this.saveCredentials(server, {
-				password: current.password || password,
-				privateKey: current.privateKey || privateKey,
-				passphrase: current.passphrase || passphrase,
-			}, true);
-		}));
-	}
-
 	dispose(): void {
 		this.watcher?.close();
 		if (this.reloadTimer) {
@@ -344,21 +312,8 @@ export class ServerStore {
 	}
 }
 
-function passwordKey(serverId: string): string {
-	return `server-hub.password.${serverId}`;
-}
-
-function privateKeyKey(serverId: string): string {
-	return `server-hub.privateKey.${serverId}`;
-}
-
-function passphraseKey(serverId: string): string {
-	return `server-hub.passphrase.${serverId}`;
-}
-
 function getServersDirectoryUri(context: vscode.ExtensionContext): vscode.Uri {
-	const configuration = vscode.workspace.getConfiguration('server-hub');
-	const configuredPath = configuration.inspect<string>(serverStoragePathSetting)?.globalValue?.trim() ?? '';
+	const configuredPath = vscode.workspace.getConfiguration('server-hub').get<string>(storagePathSetting, '').trim();
 	if (!configuredPath) {
 		return vscode.Uri.joinPath(context.globalStorageUri, 'servers');
 	}
@@ -376,13 +331,11 @@ function serverFileName(server: Server): string {
 }
 
 interface StoredServer {
-	fileName: string;
 	server: Server;
 	credentials: ServerCredentials;
-	hasCredentials: boolean;
 }
 
-function parseStoredServer(value: unknown, fileName = ''): StoredServer | undefined {
+function parseStoredServer(value: unknown): StoredServer | undefined {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
 		return undefined;
 	}
@@ -394,7 +347,6 @@ function parseStoredServer(value: unknown, fileName = ''): StoredServer | undefi
 		return undefined;
 	}
 	return {
-		fileName,
 		server,
 		credentials: {
 			password: typeof record.password === 'string' ? record.password : undefined,
@@ -404,20 +356,6 @@ function parseStoredServer(value: unknown, fileName = ''): StoredServer | undefi
 			proxyPrivateKey: typeof record.proxyPrivateKey === 'string' ? record.proxyPrivateKey : undefined,
 			proxyPassphrase: typeof record.proxyPassphrase === 'string' ? record.proxyPassphrase : undefined,
 		},
-		hasCredentials: 'password' in record || 'privateKey' in record || 'passphrase' in record || 'proxyPassword' in record || 'proxyPrivateKey' in record || 'proxyPassphrase' in record,
-	};
-}
-
-function mergeCredentials(preferred: ServerCredentials, candidates: ServerCredentials[]): ServerCredentials {
-	const firstValue = (key: keyof ServerCredentials) => preferred[key]
-		|| candidates.find(candidate => candidate[key])?.[key];
-	return {
-		password: firstValue('password'),
-		privateKey: firstValue('privateKey'),
-		passphrase: firstValue('passphrase'),
-		proxyPassword: firstValue('proxyPassword'),
-		proxyPrivateKey: firstValue('proxyPrivateKey'),
-		proxyPassphrase: firstValue('proxyPassphrase'),
 	};
 }
 
