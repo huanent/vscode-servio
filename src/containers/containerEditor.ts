@@ -202,7 +202,7 @@ export function configureContainerEditor(
 		const inspected = Array.isArray(details) ? recordValue(details[0]) : recordValue(details);
 		const originalName = stringValue(inspected, 'Name', 'name').replace(/^\//, '') || id;
 		const wasRunning = Boolean(recordValue(inspected.State ?? inspected.state).Running ?? recordValue(inspected.State ?? inspected.state).running);
-		const backupName = `${originalName}-server-hub-backup-${Date.now()}`;
+		const backupName = `${originalName}-serverkit-backup-${Date.now()}`;
 		if (wasRunning) {
 			await executeContainerCommand(server, serverStore, ['stop', id]);
 		}

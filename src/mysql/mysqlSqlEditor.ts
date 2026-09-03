@@ -7,10 +7,10 @@ import { createMysqlConnection } from './mysqlConnection';
 import { displayMysqlValue } from './tableData';
 import { splitMysqlStatements } from './sqlStatements';
 
-const executeCommandId = 'server-hub.executeMysqlSql';
-const exportResultsCommandId = 'server-hub.exportMysqlSqlResults';
-const activeContextKey = 'server-hub.mysqlSqlEditorActive';
-const resultsExportableContextKey = 'server-hub.mysqlSqlResultsExportable';
+const executeCommandId = 'serverkit.executeMysqlSql';
+const exportResultsCommandId = 'serverkit.exportMysqlSqlResults';
+const activeContextKey = 'serverkit.mysqlSqlEditorActive';
+const resultsExportableContextKey = 'serverkit.mysqlSqlResultsExportable';
 
 interface SqlDocumentContext {
 	serverId: string;
@@ -312,7 +312,7 @@ export class MysqlSqlEditorController implements vscode.Disposable {
 			return this.resultPanel;
 		}
 		const panel = vscode.window.createWebviewPanel(
-			'server-hub.mysqlSqlResults',
+			'serverkit.mysqlSqlResults',
 			'SQL Results',
 			{ viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
 			{ enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')] },

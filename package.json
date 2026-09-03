@@ -1,8 +1,8 @@
 {
-  "name": "server-hub",
-  "displayName": "ServerHub",
+  "name": "serverkit",
+  "displayName": "ServerKit",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -16,34 +16,34 @@
   "extensionKind": [
     "ui"
   ],
-  "homepage": "https://github.com/huanent/vscode-server-hub.git",
+  "homepage": "https://github.com/huanent/vscode-serverkit.git",
   "repository": {
     "type": "github",
-    "url": "https://github.com/huanent/vscode-server-hub"
+    "url": "https://github.com/huanent/vscode-serverkit"
   },
   "contributes": {
     "configuration": {
-      "title": "ServerHub",
+      "title": "ServerKit",
       "properties": {
-        "server-hub.storagePath": {
+        "serverkit.storagePath": {
           "type": "string",
           "default": "",
           "scope": "application",
-          "description": "Directory used to store server definitions as individual JSON files. Relative paths and paths starting with ~ are resolved from the user home directory. Restart ServerHub after changing this setting."
+          "description": "Directory used to store server definitions as individual JSON files. Relative paths and paths starting with ~ are resolved from the user home directory. Restart ServerKit after changing this setting."
         },
-        "server-hub.enableLanguageModelTools": {
+        "serverkit.enableLanguageModelTools": {
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "Expose ServerHub operations to Copilot tools."
+          "description": "Expose ServerKit operations to Copilot tools."
         }
       }
     },
     "languageModelTools": [
       {
-        "name": "serverhub_list_servers",
-        "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubListServers",
+        "name": "serverkit_list_servers",
+        "when": "config.serverkit.enableLanguageModelTools",
+        "toolReferenceName": "serverkitListServers",
         "displayName": "List Servers",
         "canBeReferencedInPrompt": true,
         "userDescription": "List configured servers by type.",
@@ -62,19 +62,19 @@
         "tags": ["server", "list"]
       },
       {
-        "name": "serverhub_ssh",
-        "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubSsh",
+        "name": "serverkit_ssh",
+        "when": "config.serverkit.enableLanguageModelTools",
+        "toolReferenceName": "serverkitSsh",
         "displayName": "Run SSH Command",
         "canBeReferencedInPrompt": true,
         "userDescription": "Run a command on a configured SSH server.",
-        "modelDescription": "Run a shell command on an SSH server. Get serverId from serverhub_list_servers with serverType ssh.",
+        "modelDescription": "Run a shell command on an SSH server. Get serverId from serverkit_list_servers with serverType ssh.",
         "inputSchema": {
           "type": "object",
           "properties": {
             "serverId": {
               "type": "string",
-              "description": "SSH server id from serverhub_list_servers."
+              "description": "SSH server id from serverkit_list_servers."
             },
             "command": {
               "type": "string",
@@ -86,17 +86,17 @@
         "tags": ["ssh", "command"]
       },
       {
-        "name": "serverhub_sql",
-        "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubSql",
+        "name": "serverkit_sql",
+        "when": "config.serverkit.enableLanguageModelTools",
+        "toolReferenceName": "serverkitSql",
         "displayName": "Run SQL",
         "canBeReferencedInPrompt": true,
         "userDescription": "Run SQL on a configured database server.",
-        "modelDescription": "Run one SQL statement on a database server. Get serverId from serverhub_list_servers with serverType database.",
+        "modelDescription": "Run one SQL statement on a database server. Get serverId from serverkit_list_servers with serverType database.",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "serverId": { "type": "string", "description": "DB server id from serverhub_list_servers." },
+            "serverId": { "type": "string", "description": "DB server id from serverkit_list_servers." },
             "database": { "type": "string", "description": "Database name to use." },
             "sql": { "type": "string", "minLength": 1, "description": "SQL statement to run." }
           },
@@ -105,17 +105,17 @@
         "tags": ["database", "sql", "query"]
       },
       {
-        "name": "serverhub_container",
-        "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubContainer",
+        "name": "serverkit_container",
+        "when": "config.serverkit.enableLanguageModelTools",
+        "toolReferenceName": "serverkitContainer",
         "displayName": "Run Container Command",
         "canBeReferencedInPrompt": true,
         "userDescription": "Run a command on a configured container runtime.",
-        "modelDescription": "Run a Docker, Podman, or Apple Container command. Get serverId from serverhub_list_servers with serverType container.",
+        "modelDescription": "Run a Docker, Podman, or Apple Container command. Get serverId from serverkit_list_servers with serverType container.",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "serverId": { "type": "string", "description": "Container server id from serverhub_list_servers." },
+            "serverId": { "type": "string", "description": "Container server id from serverkit_list_servers." },
             "args": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Runtime arguments, excluding the executable path." }
           },
           "required": ["serverId", "args"]
@@ -123,17 +123,17 @@
         "tags": ["container", "runtime", "command"]
       },
       {
-        "name": "serverhub_sftp",
-        "when": "config.server-hub.enableLanguageModelTools",
-        "toolReferenceName": "serverhubSftp",
+        "name": "serverkit_sftp",
+        "when": "config.serverkit.enableLanguageModelTools",
+        "toolReferenceName": "serverkitSftp",
         "displayName": "Run SFTP Operation",
         "canBeReferencedInPrompt": true,
         "userDescription": "Run an SFTP file operation on a configured SSH server.",
-        "modelDescription": "Run an SFTP operation on an SSH server. Get serverId from serverhub_list_servers with serverType ssh.",
+        "modelDescription": "Run an SFTP operation on an SSH server. Get serverId from serverkit_list_servers with serverType ssh.",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "serverId": { "type": "string", "description": "SSH server id from serverhub_list_servers." },
+            "serverId": { "type": "string", "description": "SSH server id from serverkit_list_servers." },
             "action": { "type": "string", "enum": ["list", "read", "upload", "download", "delete", "mkdir", "rename"], "description": "SFTP operation to run." },
             "remotePath": { "type": "string", "description": "Remote POSIX path." },
             "localPath": { "type": "string", "description": "Local absolute path for upload or download." },
@@ -147,11 +147,11 @@
     ],
     "customEditors": [
       {
-        "viewType": "server-hub.editor",
-        "displayName": "ServerHub",
+        "viewType": "serverkit.editor",
+        "displayName": "ServerKit",
         "selector": [
           {
-            "filenamePattern": "*.server-hub"
+            "filenamePattern": "*.serverkit"
           }
         ],
         "priority": "option"
@@ -160,266 +160,266 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "server-hub",
-          "title": "ServerHub",
+          "id": "serverkit",
+          "title": "ServerKit",
           "icon": "$(server)"
         }
       ]
     },
     "views": {
-      "server-hub": [
+      "serverkit": [
         {
-          "id": "server-hub.servers",
-          "name": "ServerHub",
+          "id": "serverkit.servers",
+          "name": "ServerKit",
           "icon": "$(server)"
         }
       ]
     },
     "commands": [
       {
-        "command": "server-hub.addServer",
+        "command": "serverkit.addServer",
         "title": "Add",
         "icon": "$(add)"
       },
       {
-        "command": "server-hub.importServers",
+        "command": "serverkit.importServers",
         "title": "Import",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "server-hub.exportServers",
+        "command": "serverkit.exportServers",
         "title": "Export",
         "icon": "$(cloud-upload)"
       },
       {
-        "command": "server-hub.exportServer",
+        "command": "serverkit.exportServer",
         "title": "Export",
         "icon": "$(cloud-upload)"
       },
       {
-        "command": "server-hub.connectServer",
+        "command": "serverkit.connectServer",
         "title": "Connect",
         "icon": "$(run-compact)"
       },
       {
-        "command": "server-hub.copyHost",
+        "command": "serverkit.copyHost",
         "title": "Copy Host",
         "icon": "$(copy)"
       },
       {
-        "command": "server-hub.copyInfo",
+        "command": "serverkit.copyInfo",
         "title": "Copy Info",
         "icon": "$(copy)"
       },
       {
-        "command": "server-hub.editServer",
+        "command": "serverkit.editServer",
         "title": "Edit",
         "icon": "$(edit)"
       },
       {
-        "command": "server-hub.duplicateServer",
+        "command": "serverkit.duplicateServer",
         "title": "Duplicate",
         "icon": "$(copy)"
       },
       {
-        "command": "server-hub.renameGroup",
+        "command": "serverkit.renameGroup",
         "title": "Rename",
         "icon": "$(edit)"
       },
       {
-        "command": "server-hub.moveGroupUp",
+        "command": "serverkit.moveGroupUp",
         "title": "Move Up",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "server-hub.moveGroupDown",
+        "command": "serverkit.moveGroupDown",
         "title": "Move Down",
         "icon": "$(arrow-down)"
       },
       {
-        "command": "server-hub.moveServerUp",
+        "command": "serverkit.moveServerUp",
         "title": "Move Up",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "server-hub.moveServerDown",
+        "command": "serverkit.moveServerDown",
         "title": "Move Down",
         "icon": "$(arrow-down)"
       },
       {
-        "command": "server-hub.deleteServer",
+        "command": "serverkit.deleteServer",
         "title": "Delete",
         "icon": "$(trash)"
       },
       {
-        "command": "server-hub.openSftp",
+        "command": "serverkit.openSftp",
         "title": "Open SFTP",
         "icon": "$(folder)"
       },
       {
-        "command": "server-hub.runSshCommand",
+        "command": "serverkit.runSshCommand",
         "title": "Run Script",
         "icon": "$(three-bars)"
       },
       {
-        "command": "server-hub.searchServers",
+        "command": "serverkit.searchServers",
         "title": "Search Servers",
         "icon": "$(search)"
       },
       {
-        "command": "server-hub.clearServerSearch",
+        "command": "serverkit.clearServerSearch",
         "title": "Clear Server Search",
         "icon": "$(clear-all)"
       },
       {
-        "command": "server-hub.executeMysqlSql",
+        "command": "serverkit.executeMysqlSql",
         "title": "Execute SQL",
         "icon": "$(play)"
       },
       {
-        "command": "server-hub.exportMysqlSqlResults",
+        "command": "serverkit.exportMysqlSqlResults",
         "title": "Export SQL Results",
         "icon": "$(cloud-download)"
       }
     ],
     "keybindings": [
       {
-        "command": "server-hub.moveSelectionUp",
+        "command": "serverkit.moveSelectionUp",
         "key": "alt+up",
         "mac": "alt+up",
-        "when": "focusedView == server-hub.servers && listFocus && !listMultiSelection && !server-hub.serverFilterActive"
+        "when": "focusedView == serverkit.servers && listFocus && !listMultiSelection && !serverkit.serverFilterActive"
       },
       {
-        "command": "server-hub.moveSelectionDown",
+        "command": "serverkit.moveSelectionDown",
         "key": "alt+down",
         "mac": "alt+down",
-        "when": "focusedView == server-hub.servers && listFocus && !listMultiSelection && !server-hub.serverFilterActive"
+        "when": "focusedView == serverkit.servers && listFocus && !listMultiSelection && !serverkit.serverFilterActive"
       },
       {
-        "command": "server-hub.executeMysqlSql",
+        "command": "serverkit.executeMysqlSql",
         "key": "f5",
-        "when": "editorTextFocus && editorLangId == sql && server-hub.mysqlSqlEditorActive"
+        "when": "editorTextFocus && editorLangId == sql && serverkit.mysqlSqlEditorActive"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "server-hub.executeMysqlSql",
-          "when": "editorLangId == sql && server-hub.mysqlSqlEditorActive",
+          "command": "serverkit.executeMysqlSql",
+          "when": "editorLangId == sql && serverkit.mysqlSqlEditorActive",
           "group": "navigation@1"
         },
         {
-          "command": "server-hub.exportMysqlSqlResults",
-          "when": "activeWebviewPanelId == server-hub.mysqlSqlResults && server-hub.mysqlSqlResultsExportable",
+          "command": "serverkit.exportMysqlSqlResults",
+          "when": "activeWebviewPanelId == serverkit.mysqlSqlResults && serverkit.mysqlSqlResultsExportable",
           "group": "navigation@1"
         },
         {
-          "command": "server-hub.runSshCommand",
-          "when": "activeWebviewPanelId == server-hub.editor && resourceFilename == sshTerminal.server-hub && server-hub.activeSshHasCommands",
+          "command": "serverkit.runSshCommand",
+          "when": "activeWebviewPanelId == serverkit.editor && resourceFilename == sshTerminal.serverkit && serverkit.activeSshHasCommands",
           "group": "navigation@1"
         },
         {
-          "command": "server-hub.openSftp",
-          "when": "activeWebviewPanelId == server-hub.editor && resourceFilename == sshTerminal.server-hub",
+          "command": "serverkit.openSftp",
+          "when": "activeWebviewPanelId == serverkit.editor && resourceFilename == sshTerminal.serverkit",
           "group": "navigation@2"
         }
       ],
       "view/title": [
         {
-          "command": "server-hub.clearServerSearch",
-          "when": "view == server-hub.servers && server-hub.serverFilterActive",
+          "command": "serverkit.clearServerSearch",
+          "when": "view == serverkit.servers && serverkit.serverFilterActive",
           "group": "navigation@1"
         },
         {
-          "command": "server-hub.searchServers",
-          "when": "view == server-hub.servers",
+          "command": "serverkit.searchServers",
+          "when": "view == serverkit.servers",
           "group": "navigation@2"
         },
         {
-          "command": "server-hub.importServers",
-          "when": "view == server-hub.servers",
+          "command": "serverkit.importServers",
+          "when": "view == serverkit.servers",
           "group": "1_transfer@1"
         },
         {
-          "command": "server-hub.exportServers",
-          "when": "view == server-hub.servers",
+          "command": "serverkit.exportServers",
+          "when": "view == serverkit.servers",
           "group": "1_transfer@2"
         },
         {
-          "command": "server-hub.addServer",
-          "when": "view == server-hub.servers",
+          "command": "serverkit.addServer",
+          "when": "view == serverkit.servers",
           "group": "navigation@4"
         }
       ],
       "view/item/context": [
         {
-          "command": "server-hub.addServer",
-          "when": "view == server-hub.servers && viewItem =~ /^serverGroup/",
+          "command": "serverkit.addServer",
+          "when": "view == serverkit.servers && viewItem =~ /^serverGroup/",
           "group": "1_modification@1"
         },
         {
-          "command": "server-hub.renameGroup",
-          "when": "view == server-hub.servers && viewItem =~ /^serverGroup/",
+          "command": "serverkit.renameGroup",
+          "when": "view == serverkit.servers && viewItem =~ /^serverGroup/",
           "group": "1_modification@2"
         },
         {
-          "command": "server-hub.moveGroupUp",
-          "when": "view == server-hub.servers && viewItem =~ /^serverGroup:.*moveUp/",
+          "command": "serverkit.moveGroupUp",
+          "when": "view == serverkit.servers && viewItem =~ /^serverGroup:.*moveUp/",
           "group": "1_modification@3"
         },
         {
-          "command": "server-hub.moveGroupDown",
-          "when": "view == server-hub.servers && viewItem =~ /^serverGroup:.*moveDown/",
+          "command": "serverkit.moveGroupDown",
+          "when": "view == serverkit.servers && viewItem =~ /^serverGroup:.*moveDown/",
           "group": "1_modification@4"
         },
         {
-          "command": "server-hub.connectServer",
-          "when": "view == server-hub.servers && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.connectServer",
+          "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "inline"
         },
         {
-          "command": "server-hub.editServer",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.editServer",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "1_modification"
         },
         {
-          "command": "server-hub.duplicateServer",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.duplicateServer",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "1_modification@1"
         },
         {
-          "command": "server-hub.runSshCommand",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^sshServer:.*hasCommands/",
+          "command": "serverkit.runSshCommand",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^sshServer:.*hasCommands/",
           "group": "1_modification@2"
         },
         {
-          "command": "server-hub.copyHost",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.copyHost",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "1_modification@3"
         },
         {
-          "command": "server-hub.copyInfo",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.copyInfo",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "1_modification@4"
         },
         {
-          "command": "server-hub.exportServer",
-          "when": "view == server-hub.servers && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.exportServer",
+          "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "1_modification@5"
         },
         {
-          "command": "server-hub.moveServerUp",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveUp/",
+          "command": "serverkit.moveServerUp",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveUp/",
           "group": "1_modification@4"
         },
         {
-          "command": "server-hub.moveServerDown",
-          "when": "view == server-hub.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveDown/",
+          "command": "serverkit.moveServerDown",
+          "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveDown/",
           "group": "1_modification@5"
         },
         {
-          "command": "server-hub.deleteServer",
-          "when": "view == server-hub.servers && viewItem =~ /^(ssh|mysql|container)Server/",
+          "command": "serverkit.deleteServer",
+          "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
           "group": "2_delete"
         }
       ]

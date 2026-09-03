@@ -37,13 +37,13 @@ interface SftpInput {
 	isDirectory?: boolean;
 }
 
-export function registerServerHubTools(serverStore: ServerStore): vscode.Disposable {
+export function registerServerKitTools(serverStore: ServerStore): vscode.Disposable {
 	return vscode.Disposable.from(
-		vscode.lm.registerTool('serverhub_list_servers', new ListServersTool(serverStore)),
-		vscode.lm.registerTool('serverhub_ssh', new ExecuteSshCommandTool(serverStore)),
-		vscode.lm.registerTool('serverhub_sql', new SqlTool(serverStore)),
-		vscode.lm.registerTool('serverhub_container', new ContainerTool(serverStore)),
-		vscode.lm.registerTool('serverhub_sftp', new SftpTool(serverStore)),
+		vscode.lm.registerTool('serverkit_list_servers', new ListServersTool(serverStore)),
+		vscode.lm.registerTool('serverkit_ssh', new ExecuteSshCommandTool(serverStore)),
+		vscode.lm.registerTool('serverkit_sql', new SqlTool(serverStore)),
+		vscode.lm.registerTool('serverkit_container', new ContainerTool(serverStore)),
+		vscode.lm.registerTool('serverkit_sftp', new SftpTool(serverStore)),
 	);
 }
 
@@ -64,7 +64,7 @@ class SqlTool implements vscode.LanguageModelTool<ExecuteSqlInput> {
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<ExecuteSqlInput>, _token: vscode.CancellationToken): Promise<vscode.LanguageModelToolResult> {
 		const server = this.findMysqlServer(options.input.serverId);
-		if (!server) throw new Error('DB server was not found. Call serverhub_list_servers with serverType db first.');
+		if (!server) throw new Error('DB server was not found. Call serverkit_list_servers with serverType db first.');
 		const credentials = await this.serverStore.getCredentials(server.id);
 		const connection = await createMysqlConnection(server, credentials, options.input.database);
 		try {
@@ -97,7 +97,7 @@ class ContainerTool implements vscode.LanguageModelTool<ExecuteContainerInput> {
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<ExecuteContainerInput>, _token: vscode.CancellationToken): Promise<vscode.LanguageModelToolResult> {
 		const server = this.findContainerServer(options.input.serverId);
-		if (!server) throw new Error('Container server was not found. Call serverhub_list_servers with serverType container first.');
+		if (!server) throw new Error('Container server was not found. Call serverkit_list_servers with serverType container first.');
 		const output = await executeContainerCommand(server, this.serverStore, options.input.args);
 		return textResult(output.slice(0, 20_000));
 	}
@@ -125,7 +125,7 @@ class SftpTool implements vscode.LanguageModelTool<SftpInput> {
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<SftpInput>, _token: vscode.CancellationToken): Promise<vscode.LanguageModelToolResult> {
 		const input = options.input;
 		const server = this.findSshServer(input.serverId);
-		if (!server) throw new Error('SSH server was not found. Call serverhub_list_servers first.');
+		if (!server) throw new Error('SSH server was not found. Call serverkit_list_servers first.');
 		const credentials = await this.serverStore.getCredentials(server.id);
 		switch (input.action) {
 			case 'list': return textResult(JSON.stringify(await listSftpDirectory(server, credentials, input.remotePath), undefined, 2));
@@ -222,7 +222,7 @@ class ExecuteSshCommandTool implements vscode.LanguageModelTool<ExecuteSshComman
 	): Promise<vscode.LanguageModelToolResult> {
 		const server = this.findSshServer(options.input.serverId);
 		if (!server) {
-			throw new Error('SSH server was not found. Call serverhub_list_servers first.');
+			throw new Error('SSH server was not found. Call serverkit_list_servers first.');
 		}
 
 		const credentials = await this.serverStore.getCredentials(server.id);

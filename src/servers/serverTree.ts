@@ -46,7 +46,7 @@ export class ServerTreeDataProvider implements vscode.TreeDataProvider<ServerTre
 
 	setFilter(filter: string): void {
 		this.filter = filter.trim().toLocaleLowerCase();
-		void vscode.commands.executeCommand('setContext', 'server-hub.serverFilterActive', Boolean(this.filter));
+		void vscode.commands.executeCommand('setContext', 'serverkit.serverFilterActive', Boolean(this.filter));
 		this.changeEmitter.fire(undefined);
 	}
 

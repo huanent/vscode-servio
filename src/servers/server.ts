@@ -209,7 +209,7 @@ export function parseServerForm(
 
 export function parseServerExport(value: unknown): ExportedServer[] {
 	if (!isRecord(value) || !Array.isArray(value.servers)) {
-		throw new Error('The file is not a supported ServerHub export.');
+		throw new Error('The file is not a supported ServerKit export.');
 	}
 
 	const serverIds = new Set<string>();

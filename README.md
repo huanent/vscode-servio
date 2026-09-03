@@ -1,10 +1,10 @@
-# ServerHub
+# ServerKit
 
-ServerHub keeps SSH and MySQL connections close to your VS Code workspace.
+ServerKit keeps SSH and MySQL connections close to your VS Code workspace.
 
 ## Features
 
-- Dedicated ServerHub view in the Activity Bar.
+- Dedicated ServerKit view in the Activity Bar.
 - Add SSH or MySQL servers from the view title menu.
 - Open interactive SSH sessions using password or private key certificate authentication.
 - Route SSH connections through an optional proxy command, such as `cloudflared access tcp --hostname host.example.com`.
@@ -16,7 +16,7 @@ ServerHub keeps SSH and MySQL connections close to your VS Code workspace.
 
 ## Usage
 
-1. Open ServerHub from the Activity Bar.
+1. Open ServerKit from the Activity Bar.
 2. Select the add button in the Server List title and choose **SSH** or **MySQL**.
 3. Enter the connection details and save the server.
 4. Select the connect button beside the server.
@@ -28,4 +28,4 @@ Use the import and export buttons in the Server List title to move connections b
 
 ## Server storage
 
-Servers are stored in the extension's global storage directory by default. When `server-hub.storagePath` is configured, that directory is used instead. Each server is stored in a stable `<server-id>.json` file, including its credentials, and its tree position is recorded in `order.json`.
+Servers are stored in the extension's global storage directory by default. When `serverkit.storagePath` is configured, that directory is used instead. Each server is stored in a stable `<server-id>.json` file, including its credentials, and its tree position is recorded in `order.json`.

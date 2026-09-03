@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { openServerConnection, openServerForm } from './editors/serverHubEditor';
+import { openServerConnection, openServerForm } from './editors/serverKitEditor';
 import { parseEditorDescriptor } from './editors/editorDescriptor';
 import { Server, ServerType } from './servers/server';
 import { ServerStore } from './servers/serverStore';
@@ -8,27 +8,27 @@ import { ServerGroupTreeItem, ServerTreeDataProvider, ServerTreeItem } from './s
 import { queueCommandForTerminal, runCommandInActiveTerminal, toggleSftpForActiveTerminal } from './ssh/sshTerminal';
 
 const commandIds = {
-	addServer: 'server-hub.addServer',
-	importServers: 'server-hub.importServers',
-	exportServers: 'server-hub.exportServers',
-	exportServer: 'server-hub.exportServer',
-	connectServer: 'server-hub.connectServer',
-	copyHost: 'server-hub.copyHost',
-	copyInfo: 'server-hub.copyInfo',
-	editServer: 'server-hub.editServer',
-	duplicateServer: 'server-hub.duplicateServer',
-	renameGroup: 'server-hub.renameGroup',
-	moveGroupUp: 'server-hub.moveGroupUp',
-	moveGroupDown: 'server-hub.moveGroupDown',
-	moveServerUp: 'server-hub.moveServerUp',
-	moveServerDown: 'server-hub.moveServerDown',
-	moveSelectionUp: 'server-hub.moveSelectionUp',
-	moveSelectionDown: 'server-hub.moveSelectionDown',
-	deleteServer: 'server-hub.deleteServer',
-	openSftp: 'server-hub.openSftp',
-	searchServers: 'server-hub.searchServers',
-	clearServerSearch: 'server-hub.clearServerSearch',
-	runSshCommand: 'server-hub.runSshCommand',
+	addServer: 'serverkit.addServer',
+	importServers: 'serverkit.importServers',
+	exportServers: 'serverkit.exportServers',
+	exportServer: 'serverkit.exportServer',
+	connectServer: 'serverkit.connectServer',
+	copyHost: 'serverkit.copyHost',
+	copyInfo: 'serverkit.copyInfo',
+	editServer: 'serverkit.editServer',
+	duplicateServer: 'serverkit.duplicateServer',
+	renameGroup: 'serverkit.renameGroup',
+	moveGroupUp: 'serverkit.moveGroupUp',
+	moveGroupDown: 'serverkit.moveGroupDown',
+	moveServerUp: 'serverkit.moveServerUp',
+	moveServerDown: 'serverkit.moveServerDown',
+	moveSelectionUp: 'serverkit.moveSelectionUp',
+	moveSelectionDown: 'serverkit.moveSelectionDown',
+	deleteServer: 'serverkit.deleteServer',
+	openSftp: 'serverkit.openSftp',
+	searchServers: 'serverkit.searchServers',
+	clearServerSearch: 'serverkit.clearServerSearch',
+	runSshCommand: 'serverkit.runSshCommand',
 } as const;
 
 export function registerServerCommands(

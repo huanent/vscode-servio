@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ServerType } from '../servers/server';
 
-export const serverHubEditorViewType = 'server-hub.editor';
+export const serverKitEditorViewType = 'serverkit.editor';
 
 export type EditorKind = 'serverForm' | 'sshTerminal' | 'mysqlEditor' | 'mysqlTablePreview' | 'containerEditor';
 
@@ -23,8 +23,8 @@ export function createEditorUri(descriptor: EditorDescriptor): vscode.Uri {
 	if (descriptor.table) params.set('table', descriptor.table);
 
 	return vscode.Uri.from({
-		scheme: 'server-hub',
-		path: `/${descriptor.kind}.server-hub`,
+		scheme: 'serverkit',
+		path: `/${descriptor.kind}.serverkit`,
 		query: params.toString(),
 	});
 }
@@ -33,7 +33,7 @@ export function parseEditorDescriptor(uri: vscode.Uri): EditorDescriptor {
 	const params = new URLSearchParams(uri.query);
 	const kind = params.get('kind');
 	if (!isEditorKind(kind)) {
-		throw new Error('The ServerHub editor resource has an unknown type.');
+		throw new Error('The ServerKit editor resource has an unknown type.');
 	}
 
 	const serverType = params.get('serverType');

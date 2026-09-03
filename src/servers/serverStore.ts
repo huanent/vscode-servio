@@ -313,7 +313,7 @@ export class ServerStore {
 }
 
 function getServersDirectoryUri(context: vscode.ExtensionContext): vscode.Uri {
-	const configuredPath = vscode.workspace.getConfiguration('server-hub').get<string>(storagePathSetting, '').trim();
+	const configuredPath = vscode.workspace.getConfiguration('serverkit').get<string>(storagePathSetting, '').trim();
 	if (!configuredPath) {
 		return vscode.Uri.joinPath(context.globalStorageUri, 'servers');
 	}

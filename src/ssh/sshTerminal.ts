@@ -20,9 +20,9 @@ interface SshWebviewMessage {
 }
 
 const metricsRefreshIntervalMs = 5000;
-const sftpFavoritesStateKey = 'server-hub.sftpFavorites';
-const activeSshHasCommandsContextKey = 'server-hub.activeSshHasCommands';
-const sftpEditTempRoot = path.join(os.tmpdir(), 'server-hub-sftp-edit');
+const sftpFavoritesStateKey = 'serverkit.sftpFavorites';
+const activeSshHasCommandsContextKey = 'serverkit.activeSshHasCommands';
+const sftpEditTempRoot = path.join(os.tmpdir(), 'serverkit-sftp-edit');
 const sftpEditFiles = new Map<string, {
 	remotePath: string;
 	upload: (localPath: string, remotePath: string) => Promise<void>;
@@ -435,7 +435,7 @@ class SshWebviewSession {
 	): Promise<void> {
 		const temporaryPath = path.join(
 			path.dirname(localPath),
-			`.${path.basename(localPath)}.server-hub-download-${randomUUID()}.tmp`,
+			`.${path.basename(localPath)}.serverkit-download-${randomUUID()}.tmp`,
 		);
 		try {
 			await this.transferFile(
@@ -546,7 +546,7 @@ class SshWebviewSession {
 		const localSize = expectedSize ?? (await fs.stat(localPath)).size;
 		const temporaryRemotePath = path.posix.join(
 			path.posix.dirname(remotePath),
-			`.${path.posix.basename(remotePath)}.server-hub-upload-${randomUUID()}.tmp`,
+			`.${path.posix.basename(remotePath)}.serverkit-upload-${randomUUID()}.tmp`,
 		);
 		try {
 			await this.transferFile(
@@ -584,7 +584,7 @@ class SshWebviewSession {
 			}
 		}
 
-		const backupPath = `${remotePath}.server-hub-backup-${randomUUID()}.tmp`;
+		const backupPath = `${remotePath}.serverkit-backup-${randomUUID()}.tmp`;
 		await this.renameRemoteFile(sftp, remotePath, backupPath);
 		try {
 			await this.renameRemoteFile(sftp, temporaryPath, remotePath);

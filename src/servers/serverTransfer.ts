@@ -12,14 +12,14 @@ export async function exportServers(serverStore: ServerStore): Promise<void> {
 
 	await exportServerFile(
 		await serverStore.getExportedServers(),
-		'server-hub-export.json',
+		'serverkit-export.json',
 	);
 }
 
 export async function exportServer(serverStore: ServerStore, servers: Server[]): Promise<void> {
 	await exportServerFile(
 		(await serverStore.getExportedServers()).filter(server => servers.some(selected => selected.id === server.id)),
-		servers.length === 1 ? `${sanitizeFileName(servers[0].name)}.json` : 'server-hub-export.json',
+		servers.length === 1 ? `${sanitizeFileName(servers[0].name)}.json` : 'serverkit-export.json',
 	);
 }
 
