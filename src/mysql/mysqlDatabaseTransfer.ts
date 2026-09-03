@@ -109,7 +109,7 @@ async function dumpDatabase(
 	progress: vscode.Progress<{ message?: string }>,
 ): Promise<void> {
 	await writeSql(output, [
-		'-- ServerKit MySQL database export',
+		'-- Serverkit MySQL database export',
 		`-- Database: ${database}`,
 		`-- Generated: ${new Date().toISOString()}`,
 		'',

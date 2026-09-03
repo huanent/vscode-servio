@@ -9,21 +9,21 @@ import {
 	createEditorUri,
 	EditorDescriptor,
 	parseEditorDescriptor,
-	serverKitEditorViewType,
+	serverkitEditorViewType,
 } from './editorDescriptor';
 
-class ServerKitDocument implements vscode.CustomDocument {
+class ServerkitDocument implements vscode.CustomDocument {
 	constructor(readonly uri: vscode.Uri, readonly descriptor: EditorDescriptor) {}
 	dispose(): void {}
 }
 
-export function registerServerKitEditor(
+export function registerServerkitEditor(
 	context: vscode.ExtensionContext,
 	serverStore: ServerStore,
 	openMysqlSqlEditor: (serverId: string, database: string, initialSql?: string) => void,
 ): vscode.Disposable {
-	const provider: vscode.CustomReadonlyEditorProvider<ServerKitDocument> = {
-		openCustomDocument: uri => new ServerKitDocument(uri, parseEditorDescriptor(uri)),
+	const provider: vscode.CustomReadonlyEditorProvider<ServerkitDocument> = {
+		openCustomDocument: uri => new ServerkitDocument(uri, parseEditorDescriptor(uri)),
 		resolveCustomEditor: async (document, panel) => {
 			const { descriptor } = document;
 			if (descriptor.kind === 'serverForm') {
@@ -80,11 +80,11 @@ export function registerServerKitEditor(
 				);
 				return;
 			}
-			throw new Error('The ServerKit editor resource is invalid.');
+			throw new Error('The Serverkit editor resource is invalid.');
 		},
 	};
 
-	return vscode.window.registerCustomEditorProvider(serverKitEditorViewType, provider, {
+	return vscode.window.registerCustomEditorProvider(serverkitEditorViewType, provider, {
 		supportsMultipleEditorsPerDocument: true,
 		webviewOptions: { retainContextWhenHidden: true },
 	});
@@ -106,7 +106,7 @@ function openMysqlTablePreview(server: MysqlServer, database: string, table: str
 }
 
 function openEditor(descriptor: EditorDescriptor): Thenable<unknown> {
-	return vscode.commands.executeCommand('vscode.openWith', createEditorUri(descriptor), serverKitEditorViewType, {
+	return vscode.commands.executeCommand('vscode.openWith', createEditorUri(descriptor), serverkitEditorViewType, {
 		preview: false,
 		viewColumn: vscode.ViewColumn.Active,
 	});

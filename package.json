@@ -2,7 +2,7 @@
   "name": "serverkit",
   "displayName": "Serverkit",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -23,19 +23,19 @@
   },
   "contributes": {
     "configuration": {
-      "title": "ServerKit",
+      "title": "Serverkit",
       "properties": {
         "serverkit.storagePath": {
           "type": "string",
           "default": "",
           "scope": "application",
-          "description": "ServerKit data directory. Relative and ~ paths resolve from your home directory."
+          "description": "Serverkit data directory. Relative and ~ paths resolve from your home directory."
         },
         "serverkit.enableLanguageModelTools": {
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "Expose ServerKit operations to Copilot tools."
+          "description": "Expose Serverkit operations to Copilot tools."
         }
       }
     },
@@ -148,7 +148,7 @@
     "customEditors": [
       {
         "viewType": "serverkit.editor",
-        "displayName": "ServerKit",
+        "displayName": "Serverkit",
         "selector": [
           {
             "filenamePattern": "*.serverkit"
@@ -161,7 +161,7 @@
       "activitybar": [
         {
           "id": "serverkit",
-          "title": "ServerKit",
+          "title": "Serverkit",
           "icon": "$(server)"
         }
       ]
@@ -170,7 +170,7 @@
       "serverkit": [
         {
           "id": "serverkit.servers",
-          "name": "ServerKit",
+          "name": "Serverkit",
           "icon": "$(server)"
         }
       ]
@@ -403,24 +403,24 @@
           "group": "1_modification@4"
         },
         {
-          "command": "serverkit.exportServer",
-          "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
-          "group": "1_modification@5"
-        },
-        {
           "command": "serverkit.moveServerUp",
           "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveUp/",
-          "group": "1_modification@4"
+          "group": "1_modification@5"
         },
         {
           "command": "serverkit.moveServerDown",
           "when": "view == serverkit.servers && !listMultiSelection && viewItem =~ /^(ssh|mysql|container)Server:.*moveDown/",
-          "group": "1_modification@5"
+          "group": "1_modification@6"
+        },
+         {
+          "command": "serverkit.exportServer",
+          "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
+          "group": "1_modification@7"
         },
         {
           "command": "serverkit.deleteServer",
           "when": "view == serverkit.servers && viewItem =~ /^(ssh|mysql|container)Server/",
-          "group": "2_delete"
+          "group": "1_modification@8"
         }
       ]
     }

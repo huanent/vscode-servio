@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ServerType } from '../servers/server';
 
-export const serverKitEditorViewType = 'serverkit.editor';
+export const serverkitEditorViewType = 'serverkit.editor';
 
 export type EditorKind = 'serverForm' | 'sshTerminal' | 'mysqlEditor' | 'mysqlTablePreview' | 'containerEditor';
 
@@ -33,7 +33,7 @@ export function parseEditorDescriptor(uri: vscode.Uri): EditorDescriptor {
 	const params = new URLSearchParams(uri.query);
 	const kind = params.get('kind');
 	if (!isEditorKind(kind)) {
-		throw new Error('The ServerKit editor resource has an unknown type.');
+		throw new Error('The Serverkit editor resource has an unknown type.');
 	}
 
 	const serverType = params.get('serverType');

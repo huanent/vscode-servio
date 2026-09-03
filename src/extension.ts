@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { activateServerKitFeature } from './features/serverKit/serverKitFeature';
+import { activateServerkitFeature } from './features/serverkit/serverkitFeature';
 import { initializeSftpFileEditing } from './ssh/sshTerminal';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	await initializeSftpFileEditing(context);
-	await activateServerKitFeature(context);
+	await activateServerkitFeature(context);
 }
 
 export function deactivate(): void {}

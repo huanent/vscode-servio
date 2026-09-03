@@ -1,10 +1,10 @@
-# ServerKit
+# Serverkit
 
-ServerKit keeps SSH and MySQL connections close to your VS Code workspace.
+Serverkit keeps SSH and MySQL connections close to your VS Code workspace.
 
 ## Features
 
-- Dedicated ServerKit view in the Activity Bar.
+- Dedicated Serverkit view in the Activity Bar.
 - Add SSH or MySQL servers from the view title menu.
 - Open interactive SSH sessions using password or private key certificate authentication.
 - Route SSH connections through an optional proxy command, such as `cloudflared access tcp --hostname host.example.com`.
@@ -16,7 +16,7 @@ ServerKit keeps SSH and MySQL connections close to your VS Code workspace.
 
 ## Usage
 
-1. Open ServerKit from the Activity Bar.
+1. Open Serverkit from the Activity Bar.
 2. Select the add button in the Server List title and choose **SSH** or **MySQL**.
 3. Enter the connection details and save the server.
 4. Select the connect button beside the server.

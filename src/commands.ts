@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { openServerConnection, openServerForm } from './editors/serverKitEditor';
+import { openServerConnection, openServerForm } from './editors/serverkitEditor';
 import { parseEditorDescriptor } from './editors/editorDescriptor';
 import { Server, ServerType } from './servers/server';
 import { ServerStore } from './servers/serverStore';

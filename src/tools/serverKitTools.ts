@@ -37,7 +37,7 @@ interface SftpInput {
 	isDirectory?: boolean;
 }
 
-export function registerServerKitTools(serverStore: ServerStore): vscode.Disposable {
+export function registerServerkitTools(serverStore: ServerStore): vscode.Disposable {
 	return vscode.Disposable.from(
 		vscode.lm.registerTool('serverkit_list_servers', new ListServersTool(serverStore)),
 		vscode.lm.registerTool('serverkit_ssh', new ExecuteSshCommandTool(serverStore)),
