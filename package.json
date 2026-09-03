@@ -1,8 +1,8 @@
 {
   "name": "serverkit",
-  "displayName": "ServerKit",
+  "displayName": "Serverkit",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "engines": {
     "vscode": "^1.125.0"
   },
