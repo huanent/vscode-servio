@@ -22,6 +22,7 @@ export type ServerMoveDirection = 'up' | 'down';
 export class ServerStore {
 	private readonly changeEmitter = new vscode.EventEmitter<void>();
 	readonly onDidChange = this.changeEmitter.event;
+	private readonly storageDirectoryUri: vscode.Uri;
 	private readonly serversDirectoryUri: vscode.Uri;
 	private servers: Server[] = [];
 	private readonly credentials = new Map<string, ServerCredentials>();
@@ -31,7 +32,8 @@ export class ServerStore {
 	private writeInProgress = false;
 
 	private constructor(context: vscode.ExtensionContext) {
-		this.serversDirectoryUri = getServersDirectoryUri(context);
+		this.storageDirectoryUri = getStorageDirectoryUri(context);
+		this.serversDirectoryUri = vscode.Uri.joinPath(this.storageDirectoryUri, 'servers');
 	}
 
 	static async create(context: vscode.ExtensionContext): Promise<ServerStore> {
@@ -157,6 +159,7 @@ export class ServerStore {
 	}
 
 	private async initialize(): Promise<void> {
+		await vscode.workspace.fs.createDirectory(this.storageDirectoryUri);
 		await vscode.workspace.fs.createDirectory(this.serversDirectoryUri);
 		this.watcher = watch(this.serversDirectoryUri.fsPath, (_eventType, fileName) => {
 			if (fileName?.endsWith('.json')) {
@@ -241,7 +244,7 @@ export class ServerStore {
 				await writeFileAtomically(this.serversDirectoryUri, fileName, contents);
 			}));
 			await writeFileAtomically(
-				this.serversDirectoryUri,
+				this.storageDirectoryUri,
 				serverOrderFileName,
 				Buffer.from(JSON.stringify({ version: serverOrderVersion, serverIds: servers.map(server => server.id) }, undefined, 2)),
 			);
@@ -261,7 +264,7 @@ export class ServerStore {
 
 	private async readServerOrder(): Promise<string[]> {
 		try {
-			const contents = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.serversDirectoryUri, serverOrderFileName));
+			const contents = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.storageDirectoryUri, serverOrderFileName));
 			const value = JSON.parse(Buffer.from(contents).toString('utf8')) as unknown;
 			if (!isServerOrder(value)) {
 				return [];
@@ -312,10 +315,10 @@ export class ServerStore {
 	}
 }
 
-function getServersDirectoryUri(context: vscode.ExtensionContext): vscode.Uri {
+function getStorageDirectoryUri(context: vscode.ExtensionContext): vscode.Uri {
 	const configuredPath = vscode.workspace.getConfiguration('serverkit').get<string>(storagePathSetting, '').trim();
 	if (!configuredPath) {
-		return vscode.Uri.joinPath(context.globalStorageUri, 'servers');
+		return context.globalStorageUri;
 	}
 
 	const expandedPath = configuredPath === '~'

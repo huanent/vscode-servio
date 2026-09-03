@@ -2,7 +2,7 @@
   "name": "serverkit",
   "displayName": "ServerKit",
   "description": "Manage and connect to ssh mysql server and more..",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -29,7 +29,7 @@
           "type": "string",
           "default": "",
           "scope": "application",
-          "description": "Directory used to store server definitions as individual JSON files. Relative paths and paths starting with ~ are resolved from the user home directory. Restart ServerKit after changing this setting."
+          "description": "ServerKit data directory. Relative and ~ paths resolve from your home directory."
         },
         "serverkit.enableLanguageModelTools": {
           "type": "boolean",
